@@ -1,0 +1,396 @@
+/* The night train scene of exercise 3. Everything is scoped under .moonline. */
+
+.moonline {
+  --ml-navy: #00273f;
+  --ml-gold: #e2bf6b;
+  --ml-paper: #f6e8c3;
+  --ml-paper-2: #eed79e;
+  --ml-ink: #2b2112;
+  --ml-text: #faf9f8;
+  --ml-muted: #a9bdcf;
+  --ml-yellow: #f1dd35;
+  --ml-green: #4be0a6;
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+  color: var(--ml-text);
+}
+
+.moonline :focus-visible {
+  outline: 3px solid var(--ml-yellow);
+  outline-offset: 3px;
+}
+
+.moonline .ml-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ---------- stage ---------- */
+
+.moonline .ml-stage {
+  position: relative;
+  height: 400px;
+  overflow: hidden;
+}
+
+/* the one button: Depart */
+.moonline .ml-depart {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ml-yellow);
+  color: var(--ml-navy);
+  font: 700 0.9rem "Montserrat", system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.moonline .ml-depart:hover {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.moonline .ml-depart:focus-visible {
+  outline-color: var(--ml-text);
+}
+
+/* the waiting card, floating over the train on the starter */
+.moonline .ml-waiting {
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  translate: -50% 0;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 340px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: rgb(0 39 63 / 0.9);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ml-muted);
+}
+
+.moonline .ml-waiting[hidden] {
+  display: none;
+}
+
+.moonline .ml-waiting strong {
+  font: 700 1.05rem "Montserrat", system-ui, sans-serif;
+  color: var(--ml-yellow);
+}
+
+.moonline .ml-waiting-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--ml-yellow);
+}
+
+/* a ticket slides out above its carriage: one short line */
+.moonline .ml-ticket {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 14px);
+  translate: -50% 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: max-content;
+  padding: 8px 14px 8px 16px;
+  border-radius: 8px;
+  border-left: 5px dashed rgb(43 33 18 / 0.25);
+  background: linear-gradient(170deg, var(--ml-paper), var(--ml-paper-2));
+  color: var(--ml-ink);
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.35);
+  white-space: nowrap;
+}
+
+.moonline .ml-ticket::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: var(--ml-paper-2);
+}
+
+.moonline .ml-ticket-id {
+  font: 700 0.72rem "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  color: #7a5a1c;
+}
+
+.moonline .ml-ticket-name {
+  font: 700 0.95rem "Montserrat", system-ui, sans-serif;
+}
+
+.moonline .ml-ticket-fare {
+  font: 700 0.95rem "JetBrains Mono", ui-monospace, monospace;
+  color: #6b3f05;
+}
+
+/* the one quiet type tag, on the latest ticket only: Ticket is derived from issue */
+.moonline .ml-ticket-type {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  translate: -50% 0;
+  font: 500 0.72rem "JetBrains Mono", ui-monospace, monospace;
+  color: var(--ml-muted);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.moonline .ml-ticket.is-latest .ml-ticket-type {
+  opacity: 1;
+}
+
+/* ---------- the train on its rail ---------- */
+
+.moonline .ml-line {
+  container-type: inline-size;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+}
+
+.moonline .ml-train {
+  display: flex;
+  align-items: flex-end;
+  gap: 1cqi;
+  width: max-content;
+  transition: transform 3s cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.moonline.is-rolling .ml-train {
+  transform: translateX(6cqi);
+}
+
+.moonline .ml-rail {
+  height: 3px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: rgb(169 189 207 / 0.5);
+}
+
+.moonline .ml-car {
+  --car: #1d5a8c;
+  position: relative;
+  width: 24cqi;
+}
+
+.moonline .ml-car--0 { --car: #173f66; }
+.moonline .ml-car--1 { --car: #23609a; }
+.moonline .ml-car--2 { --car: #2f71b8; }
+
+.moonline .ml-car-body {
+  height: 13cqi;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1cqi 1.2cqi 1.5cqi;
+  border-radius: 1.8cqi 1.8cqi 0.7cqi 0.7cqi;
+  background: var(--car);
+  box-shadow: inset 0 -0.7cqi 0 var(--ml-gold);
+}
+
+.moonline .ml-car-class {
+  font: 700 max(11px, 1.45cqi)/1.2 "Montserrat", system-ui, sans-serif;
+  color: var(--ml-paper);
+}
+
+.moonline .ml-windows {
+  display: flex;
+  gap: 1cqi;
+}
+
+.moonline .ml-cabin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 8cqi;
+  min-width: 48px;
+  height: 5cqi;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 1cqi;
+  background: #f8d47e;
+  color: #3a2408;
+  cursor: pointer;
+  box-shadow: 0 0 1.6cqi rgb(255 206 110 / 0.4);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.moonline .ml-cabin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 2.6cqi rgb(255 214 128 / 0.7);
+}
+
+.moonline .ml-cabin-id {
+  font: 800 max(12px, 1.5cqi)/1 "Montserrat", system-ui, sans-serif;
+}
+
+.moonline .ml-cabin-check {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  padding: 3px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: #4be0a6;
+  color: var(--ml-navy);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.moonline .ml-cabin.is-booked .ml-cabin-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.moonline .ml-cabin:disabled {
+  background: #0c2a44;
+  color: var(--ml-muted);
+  box-shadow: none;
+  cursor: default;
+}
+
+.moonline .ml-fare {
+  padding: 0 0.9cqi;
+  border-radius: 999px;
+  background: rgb(0 22 38 / 0.45);
+  color: var(--ml-paper);
+  font: 600 max(10px, 1.2cqi)/1.6 "JetBrains Mono", ui-monospace, monospace;
+}
+
+.moonline .ml-fare--missing {
+  background: var(--ml-yellow);
+  color: var(--ml-navy);
+  font-family: "Open Sans", system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.moonline .ml-bogies {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1.6cqi;
+  margin-top: -0.4cqi;
+}
+
+.moonline .ml-bogie {
+  display: block;
+  width: 6cqi;
+  height: 2.8cqi;
+}
+
+.moonline.is-rolling .ml-wheel {
+  animation: ml-spin 0.9s linear infinite;
+}
+
+@keyframes ml-spin {
+  to { transform: rotate(360deg); }
+}
+
+.moonline .ml-loco {
+  width: 16cqi;
+}
+
+.moonline .ml-loco-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- caption under the stage ---------- */
+
+.moonline .ml-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.moonline .ml-caption p,
+.moonline > .ml-caption-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ml-muted);
+  font-size: 0.95rem;
+}
+
+.moonline .ml-caption-latest {
+  font-size: 1rem !important;
+}
+
+.moonline .ml-caption-latest code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  color: var(--ml-text);
+}
+
+.moonline .ml-caption-latest .ml-icon {
+  color: var(--ml-gold);
+}
+
+.moonline .ml-caption-status .ml-icon {
+  color: var(--ml-green);
+}
+
+.moonline .ml-caption-status.is-waiting .ml-icon,
+.moonline .ml-caption-status.is-waiting strong {
+  color: var(--ml-yellow);
+}
+
+.moonline .ml-caption-status.is-error,
+.moonline .ml-caption-status.is-error .ml-icon,
+.moonline .ml-problem {
+  color: #ffb4ab;
+}
+
+@media (max-width: 860px) {
+  .moonline .ml-stage {
+    height: 340px;
+  }
+}
+
+/* ---------- calm mode: no rolling ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .moonline *,
+  .moonline *::before,
+  .moonline *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .moonline.is-rolling .ml-train {
+    transform: none;
+  }
+}

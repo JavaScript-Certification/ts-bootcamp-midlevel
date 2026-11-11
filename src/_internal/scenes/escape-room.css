@@ -1,0 +1,618 @@
+/* Exercise 4 scene: the door, its keypad and the CCTV log. Everything is scoped under .er-root */
+.er-root {
+  --er-navy: #00273f;
+  --er-surface: #0b3553;
+  --er-surface-2: #164466;
+  --er-blue-light: #358ef1;
+  --er-yellow: #f1dd35;
+  --er-text: #faf9f8;
+  --er-muted: #a9bdcf;
+  --er-amber: #f5a524;
+  --er-glow: #ffd27a;
+  --er-green: #4be0a6;
+  --er-red: #ff6f61;
+  --er-mono: "JetBrains Mono", ui-monospace, monospace;
+  --er-title: "Montserrat", system-ui, sans-serif;
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+  font-family: "Open Sans", system-ui, sans-serif;
+  color: var(--er-text);
+}
+
+.er-root .er-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.er-root .er-alert {
+  margin: 0;
+  color: #ffb4ab;
+}
+
+/* ---------- stage ---------- */
+.er-root .er-stage {
+  position: relative;
+  height: 440px;
+}
+
+.er-root .er-toolbar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 3;
+}
+
+.er-root .er-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--er-yellow);
+  color: var(--er-navy);
+  font: 700 0.9rem var(--er-title);
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.er-root .er-primary:hover:not(:disabled) {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.er-root .er-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.er-root .er-primary:focus-visible,
+.er-root .er-key:focus-visible,
+.er-root .er-hint:focus-visible {
+  outline: 3px solid var(--er-text);
+  outline-offset: 3px;
+}
+
+/* the set: one wall with the door and its keypad */
+.er-root .er-set {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  translate: -50% 0;
+}
+
+.er-root .er-wall {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 44px;
+  padding: 0 48px;
+  height: 340px;
+  border-radius: 18px 18px 6px 6px;
+  background: linear-gradient(180deg, #1b4a6e, var(--er-surface) 85%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 10px 0 #072a42, 0 22px 30px rgb(0 0 0 / 0.35);
+  transition: box-shadow 1s;
+}
+
+.er-root .er-shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -26px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.4), transparent);
+}
+
+/* the plaque floats above the door, like a label */
+.er-root .er-doorway {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.er-root .er-plaque {
+  position: absolute;
+  bottom: calc(100% + 16px);
+  width: max-content;
+  padding: 6px 12px 7px;
+  border-radius: 10px;
+  background: rgb(0 39 63 / 0.92);
+  border: 1px solid rgb(169 189 207 / 0.22);
+  border-top: 3px solid var(--er-muted);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 0.3);
+  font: 500 0.82rem var(--er-mono);
+  white-space: nowrap;
+}
+
+.er-root .er-plaque::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: rgb(0 39 63 / 0.92);
+  border-right: 1px solid rgb(169 189 207 / 0.22);
+  border-bottom: 1px solid rgb(169 189 207 / 0.22);
+}
+
+.er-root .er-plaque.is-busy {
+  border-top-color: var(--er-amber);
+}
+
+
+/* the door */
+.er-root .er-frame {
+  position: relative;
+  width: 132px;
+  height: 222px;
+  padding: 0;
+  border: 7px solid #2a6390;
+  border-bottom: 0;
+  border-radius: 66px 66px 0 0;
+  background: #031a2a;
+  perspective: 700px;
+}
+
+.er-root .er-light {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse 80% 60% at 50% 65%, #fff6d8, var(--er-glow) 35%, var(--er-amber) 72%, #8a4b0c);
+  opacity: 0;
+  transition: opacity 0.9s 0.2s;
+}
+
+.er-root .er-door {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: 18px 16px;
+  border-radius: inherit;
+  transform-origin: left center;
+  transform: rotateY(-4deg);
+  background: linear-gradient(100deg, #e9eef3, #c5d2de);
+  box-shadow: inset -6px 0 10px rgb(0 0 0 / 0.12);
+  transition: transform 1.2s cubic-bezier(0.25, 0.9, 0.3, 1), filter 1.2s;
+}
+
+.er-root .er-door-panel {
+  height: 64px;
+  border-radius: 6px;
+  border: 2px solid rgb(11 53 83 / 0.14);
+}
+
+.er-root .er-door-panel:first-child {
+  border-radius: 40px 40px 6px 6px;
+}
+
+.er-root .er-handle {
+  position: absolute;
+  right: 12px;
+  top: 52%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--er-amber);
+  box-shadow: 0 0 0 3px rgb(245 165 36 / 0.2);
+}
+
+.er-root .er-stage.is-open .er-door {
+  transform: rotateY(-102deg);
+  filter: brightness(0.75);
+}
+
+.er-root .er-stage.is-open .er-light {
+  opacity: 1;
+}
+
+.er-root .er-stage.is-open .er-wall {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), inset 0 -80px 90px -50px rgb(255 210 122 / 0.35), 0 10px 0 #072a42, 0 22px 30px rgb(0 0 0 / 0.35);
+}
+
+/* the keypad on the wall */
+.er-root .er-keypad {
+  align-self: flex-end;
+  margin-bottom: 26px;
+  display: grid;
+  gap: 8px;
+  width: 128px;
+  padding: 12px 10px 10px;
+  border-radius: 14px;
+  background: #062033;
+  box-shadow: 0 10px 22px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+.er-root .er-display {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 0 2px 2px;
+}
+
+.er-root .er-slot {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  border-bottom: 2px solid rgb(169 189 207 / 0.25);
+  font: 700 1.05rem var(--er-mono);
+  color: var(--er-glow);
+}
+
+.er-root .er-slot.is-filled {
+  border-bottom-color: var(--er-amber);
+}
+
+.er-root .er-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.er-root .er-key {
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: var(--er-surface-2);
+  color: var(--er-text);
+  font: 700 0.85rem var(--er-mono);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.08s;
+}
+
+.er-root .er-key:hover:not(:disabled),
+.er-root .er-key.is-pressed {
+  background: #22608e;
+}
+
+.er-root .er-key.is-pressed,
+.er-root .er-key:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.er-root .er-key:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.er-root .er-key--side {
+  font-size: 0.62rem;
+  color: var(--er-muted);
+}
+
+.er-root .er-key--enter {
+  font-size: 0.62rem;
+  background: var(--er-amber);
+  color: var(--er-navy);
+}
+
+.er-root .er-key--enter:hover:not(:disabled) {
+  background: var(--er-glow);
+}
+
+.er-root .er-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 3px 0 0;
+  border: 0;
+  background: none;
+  color: var(--er-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.er-root .er-hint .er-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.er-root .er-hint-tag {
+  font: 500 0.66rem var(--er-mono);
+  color: var(--er-glow);
+}
+
+.er-root .er-hint:hover {
+  color: var(--er-yellow);
+}
+
+/* wrong code: shake and buzz red; right code: green */
+.er-root .er-stage.is-wrong .er-keypad {
+  animation: er-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  box-shadow: 0 0 0 2px rgb(255 111 97 / 0.6), 0 0 28px rgb(255 111 97 / 0.35);
+}
+
+.er-root .er-stage.is-wrong .er-slot {
+  color: var(--er-red);
+  border-bottom-color: var(--er-red);
+}
+
+.er-root .er-stage.is-open .er-slot {
+  color: var(--er-green);
+  border-bottom-color: var(--er-green);
+}
+
+@keyframes er-shake {
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-6px); }
+  40%, 60% { transform: translateX(6px); }
+}
+
+/* the lobby screen: one line, red while the code leaks */
+.er-root .er-lobby {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  translate: 0 -50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgb(0 39 63 / 0.6);
+  border: 1px solid rgb(169 189 207 / 0.18);
+  font: 500 0.78rem var(--er-mono);
+  color: var(--er-muted);
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.er-root .er-lobby .er-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.er-root .er-lobby.is-leaking {
+  color: var(--er-red);
+  border-color: rgb(255 111 97 / 0.55);
+}
+
+/* the CCTV: small and light */
+.er-root .er-cctv {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  translate: 0 -50%;
+  width: 214px;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: 12px;
+  background: rgb(0 39 63 / 0.6);
+  border: 1px solid rgb(169 189 207 / 0.18);
+}
+
+.er-root .er-cctv-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.er-root .er-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 700 0.65rem var(--er-mono);
+  letter-spacing: 0.12em;
+  color: var(--er-muted);
+}
+
+.er-root .er-rec::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--er-red);
+  animation: er-blink 1.6s steps(2, start) infinite;
+}
+
+.er-root .er-cctv.is-off .er-rec::before {
+  background: var(--er-muted);
+  animation: none;
+}
+
+@keyframes er-blink {
+  to { visibility: hidden; }
+}
+
+.er-root .er-cctv-title {
+  font: 500 0.75rem var(--er-mono);
+  color: var(--er-glow);
+}
+
+.er-root .er-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font: 500 0.74rem/1.4 var(--er-mono);
+}
+
+.er-root .er-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.er-root .er-line.is-new {
+  animation: er-line-in 0.5s ease-out;
+}
+
+.er-root .er-line--off {
+  color: var(--er-muted);
+  font-style: italic;
+}
+
+@keyframes er-line-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+.er-root .er-result.is-true {
+  color: var(--er-green);
+}
+
+.er-root .er-result.is-false {
+  color: var(--er-red);
+}
+
+/* the first step still to do floats over the door */
+.er-root .er-waiting {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% 0;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  max-width: 380px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: rgb(0 39 63 / 0.9);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--er-muted);
+  pointer-events: none;
+}
+
+.er-root .er-waiting[hidden] {
+  display: none;
+}
+
+.er-root .er-waiting strong {
+  font-family: var(--er-title);
+  font-size: 1.05rem;
+  color: var(--er-yellow);
+}
+
+.er-root .er-waiting-icon {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--er-yellow);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* ---------- caption under the stage ---------- */
+.er-root .er-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.er-root .er-caption p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--er-muted);
+  font-size: 0.95rem;
+}
+
+.er-root .er-caption-latest {
+  font-size: 1rem;
+}
+
+.er-root .er-caption-latest code {
+  font-family: var(--er-mono);
+  color: var(--er-text);
+}
+
+.er-root .er-caption-latest .er-icon,
+.er-root .er-caption-status.is-waiting .er-icon,
+.er-root .er-caption-status.is-waiting strong,
+.er-root .er-hint-text {
+  color: var(--er-yellow);
+}
+
+.er-root .er-hint-text {
+  font-style: italic;
+}
+
+.er-root .er-caption-status .er-icon {
+  color: var(--er-green);
+}
+
+.er-root .er-caption-status.is-error,
+.er-root .er-caption-status.is-error .er-icon {
+  color: #ffb4ab;
+}
+
+/* ---------- smaller screens: the CCTV goes under the wall ---------- */
+@media (max-width: 960px) {
+  .er-root .er-stage {
+    height: auto;
+    display: grid;
+    justify-items: center;
+    gap: 40px;
+    padding: 70px 0 0;
+  }
+
+  .er-root .er-set {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    translate: none;
+    margin-top: 24px;
+  }
+
+  .er-root .er-toolbar {
+    top: 0;
+    left: 0;
+  }
+
+  .er-root .er-lobby {
+    position: static;
+    translate: none;
+  }
+
+  .er-root .er-cctv {
+    position: static;
+    translate: none;
+    width: min(340px, 100%);
+    box-sizing: border-box;
+  }
+
+  .er-root .er-waiting {
+    top: 56px;
+  }
+}
+
+/* ---------- reduced motion: no shake, no swing ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .er-root *,
+  .er-root *::before,
+  .er-root *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .er-root .er-door,
+  .er-root .er-stage.is-open .er-door {
+    transform: none;
+  }
+
+  .er-root .er-stage.is-open .er-door {
+    opacity: 0;
+  }
+}

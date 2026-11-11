@@ -1,0 +1,275 @@
+/* Exercise 7 scene: the rooftop cinema. Everything is scoped under .cin-root */
+.cin-root {
+  --cin-night: #220a12;
+  --cin-yellow: #f1dd35;
+  --cin-cream: #fff4dc;
+  --cin-text: #faf9f8;
+  --cin-muted: #c9b3a8;
+  --cin-red: #ff8a80;
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+  font-family: "Open Sans", system-ui, sans-serif;
+  color: var(--cin-text);
+}
+
+.cin-root .cin-icon,
+.cin-root .cin-caption svg,
+.cin-root .cin-next svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cin-root .cin-caption svg {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+
+.cin-root .cin-caption strong {
+  margin-right: 4px;
+}
+
+.cin-root code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-variant-ligatures: none;
+}
+
+/* ---------- stage ---------- */
+
+.cin-root .cin-stage {
+  position: relative;
+  height: 440px;
+  overflow: hidden;
+}
+
+.cin-root .cin-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cin-root .cin-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cin-root .cin-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+/* a ticket: the line your describe returned, labelled by your board */
+.cin-root .cin-ticket {
+  width: max-content;
+  box-sizing: border-box;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgb(34 10 18 / 0.9);
+  border: 1px solid rgb(201 179 168 / 0.25);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 0.3);
+  animation: cin-pop 0.35s ease-out;
+}
+
+.cin-root .cin-ticket::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: rgb(34 10 18 / 0.9);
+  border-right: 1px solid rgb(201 179 168 / 0.25);
+  border-bottom: 1px solid rgb(201 179 168 / 0.25);
+}
+
+.cin-root .cin-ticket.is-now {
+  border: 1px dashed var(--cin-yellow);
+}
+
+.cin-root .cin-ticket.is-playing {
+  border: 1px solid var(--cin-cream);
+  box-shadow: 0 0 0 2px rgb(255 244 220 / 0.25), 0 8px 18px rgb(0 0 0 / 0.3);
+}
+
+.cin-root .cin-ticket-head {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cin-muted);
+}
+
+.cin-root .cin-ticket.is-now .cin-ticket-head {
+  color: var(--cin-yellow);
+}
+
+.cin-root .cin-ticket-text {
+  font: 500 0.82rem/1.35 "JetBrains Mono", ui-monospace, monospace;
+}
+
+.cin-root .cin-ticket.is-problem .cin-ticket-text {
+  color: var(--cin-red);
+}
+
+/* toolbar: the one button */
+.cin-root .cin-toolbar {
+  position: absolute;
+  inset: 14px 14px auto;
+  display: flex;
+  pointer-events: none;
+}
+
+.cin-root .cin-next {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--cin-yellow);
+  color: var(--cin-night);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.cin-root .cin-next svg {
+  fill: currentColor;
+  stroke: none;
+}
+
+.cin-root .cin-next:hover {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.cin-root .cin-next:active {
+  transform: translateY(1px);
+}
+
+.cin-root .cin-next:focus-visible {
+  outline: 3px solid var(--cin-text);
+  outline-offset: 3px;
+}
+
+/* the card floating over the screen while step 2 is not done */
+.cin-root .cin-waiting {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  max-width: 320px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: rgb(34 10 18 / 0.92);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--cin-muted);
+}
+
+.cin-root .cin-waiting[hidden] {
+  display: none;
+}
+
+.cin-root .cin-waiting strong {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 1.05rem;
+  color: var(--cin-yellow);
+}
+
+.cin-root .cin-waiting-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--cin-yellow);
+}
+
+/* ---------- caption under the stage ---------- */
+
+.cin-root .cin-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.cin-root .cin-caption p {
+  display: block;
+  margin: 0;
+  color: var(--cin-muted);
+  font-size: 0.95rem;
+}
+
+.cin-root .cin-caption-played {
+  font-size: 1rem;
+}
+
+.cin-root .cin-caption-played code {
+  color: var(--cin-text);
+}
+
+.cin-root .cin-caption-played svg,
+.cin-root .cin-caption-status.is-waiting svg,
+.cin-root .cin-caption-status.is-waiting strong {
+  color: var(--cin-yellow);
+}
+
+.cin-root .cin-caption-status svg {
+  color: #4be0a6;
+}
+
+.cin-root .cin-caption-status.is-error,
+.cin-root .cin-caption-status.is-error svg {
+  color: var(--cin-red);
+}
+
+@keyframes cin-pop {
+  from {
+    opacity: 0;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 860px) {
+  .cin-root .cin-stage {
+    height: 380px;
+  }
+
+  .cin-root .cin-ticket {
+    padding: 5px 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cin-root .cin-ticket {
+    animation: none;
+  }
+
+  .cin-root .cin-next {
+    transition: none;
+  }
+}

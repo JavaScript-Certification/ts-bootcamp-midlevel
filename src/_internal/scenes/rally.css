@@ -1,0 +1,373 @@
+/* Food Truck Rally scene. You do not need to modify this file. Everything is scoped under .rally-scene */
+.rally-scene {
+  --navy: #00273f;
+  --accent: #ffb562;
+  --yellow: #f1dd35;
+  --green: #4be0a6;
+  --text: #faf9f8;
+  --muted: #dcc6b2;
+  --line: rgb(220 198 178 / 0.22);
+  margin-top: 28px;
+  display: grid;
+  gap: 18px;
+  font-family: "Open Sans", system-ui, sans-serif;
+  color: var(--text);
+}
+
+.rally-scene svg {
+  display: block;
+}
+
+.rally-scene code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+}
+
+.rally-glyph {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ---------- stage ---------- */
+.rally-stage {
+  position: relative;
+  padding: 14px;
+}
+
+.rally-replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--navy);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.rally-replay:hover:not(:disabled) {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.rally-replay:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.rally-replay:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+
+/* ---------- the street: the one object of the scene ---------- */
+.rally-street {
+  margin-top: 44px;
+}
+
+.rally-lot {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 0.7fr);
+  grid-template-rows: auto auto auto auto;
+  gap: 8px 22px;
+  align-items: start;
+  padding: 0 12px;
+}
+
+.rally-spot {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  min-width: 0;
+}
+
+.rally-tags {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+}
+
+.rally-tag {
+  animation: rally-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.rally-tag--opening {
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
+
+.rally-tag--stop {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--navy);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+@keyframes rally-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+.rally-truck {
+  position: relative;
+  width: 100%;
+  max-width: 180px;
+}
+
+.rally-truck-art {
+  width: 100%;
+  height: auto;
+  transition: opacity 0.4s ease;
+}
+
+/* once the quickest is known, the others step back */
+.rally-lot:has(.is-quickest) .rally-spot:not(.is-quickest, .rally-spot--empty) :is(.rally-truck-art, .rally-queue) {
+  opacity: 0.4;
+}
+
+.rally-medal {
+  position: absolute;
+  top: -10px;
+  right: -4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--navy);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.3);
+  animation: rally-drop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes rally-drop {
+  from {
+    transform: translateY(-24px) scale(0.6);
+    opacity: 0;
+  }
+}
+
+.rally-plate {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.rally-plate-id {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--truck);
+  color: var(--navy);
+  font-size: 0.7rem;
+}
+
+.rally-plate-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rally-queue {
+  margin: 4px 0 0;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+  transition: opacity 0.4s ease;
+}
+
+.rally-spot.is-quickest .rally-queue {
+  color: var(--yellow);
+}
+
+/* the empty spot: findById finds nothing here */
+.rally-empty {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 100%;
+  max-width: 120px;
+  aspect-ratio: 1.2;
+  border: 2px dashed var(--line);
+  border-radius: 14px;
+}
+
+.rally-cone {
+  width: 34px;
+  height: 34px;
+}
+
+.rally-empty-label {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.rally-bubble {
+  position: relative;
+  margin: 0 0 6px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: var(--text);
+  color: #3a2414;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-align: center;
+  animation: rally-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.rally-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-bottom: 0;
+  border-top-color: var(--text);
+}
+
+/* ---------- waiting card, floating over the street ---------- */
+.rally-waiting {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 320px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: rgb(38 23 15 / 0.92);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.rally-waiting[hidden] {
+  display: none;
+}
+
+.rally-waiting strong {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 1.05rem;
+  color: var(--yellow);
+}
+
+.rally-waiting-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--yellow);
+}
+
+/* ---------- caption under the street ---------- */
+.rally-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.rally-caption p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.rally-caption-latest {
+  font-size: 1rem;
+}
+
+.rally-caption-latest code {
+  color: var(--text);
+}
+
+.rally-caption-latest .rally-glyph,
+.rally-caption-status.is-waiting .rally-glyph,
+.rally-caption-status.is-waiting strong {
+  color: var(--yellow);
+}
+
+.rally-caption-status .rally-glyph {
+  color: var(--green);
+}
+
+.rally-caption-status.is-error,
+.rally-caption-status.is-error .rally-glyph {
+  color: #ffb4ab;
+}
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 900px) {
+  .rally-lot {
+    gap: 8px 10px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .rally-street {
+    overflow-x: auto;
+  }
+
+  .rally-lot {
+    min-width: 600px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rally-scene *,
+  .rally-scene *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* on the starter, the street steps back behind the waiting card */
+.rally-street {
+  transition: opacity 0.4s ease;
+}
+
+.rally-stage:has(.rally-waiting:not([hidden])) .rally-street {
+  opacity: 0.5;
+}

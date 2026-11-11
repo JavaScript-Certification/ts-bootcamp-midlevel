@@ -1,0 +1,613 @@
+/* Karaoke Night scene (exercise 6). Everything is scoped under .kn-scene. */
+
+.kn-scene {
+  --kn-accent: var(--accent, #ff6fe0);
+  --kn-ink: #1b0c2e;
+  --kn-line: rgb(250 249 248 / 0.14);
+  --kn-muted: #b9a9d0;
+  --kn-green: #4be0a6;
+  --kn-amber: #ffc46b;
+  --kn-red: #ff7b72;
+  --kn-yellow: #f1dd35;
+  margin-top: 20px;
+  display: grid;
+  gap: 14px;
+  color: var(--text, #faf9f8);
+}
+
+.kn-scene p {
+  margin: 0;
+}
+
+.kn-scene code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+  font-variant-ligatures: none;
+}
+
+.kn-icon svg,
+.kn-start-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- the stage: one illustrated object on the page background ---------- */
+
+.kn-stage {
+  position: relative;
+  /* a true 16:9 box, so the drawing and the % positions stay aligned; short enough to keep the caption and form in view */
+  aspect-ratio: 16 / 9;
+  margin-inline: auto;
+  width: min(100%, 720px);
+  container-type: size;
+  overflow: hidden;
+}
+
+.kn-stage > * {
+  position: absolute;
+}
+
+.kn-platform {
+  inset: 0;
+}
+
+.kn-platform svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.kn-toolbar {
+  top: 14px;
+  left: 14px;
+  z-index: 20;
+}
+
+.kn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px 9px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--kn-yellow);
+  color: #00273f;
+  font: 700 0.9rem "Montserrat", system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease, opacity 0.2s ease;
+}
+
+.kn-start:hover:not(:disabled) {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.kn-start:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+
+.kn-start:focus-visible {
+  outline: 3px solid var(--text, #faf9f8);
+  outline-offset: 3px;
+}
+
+/* spotlight */
+.kn-spot {
+  inset: 0;
+  pointer-events: none;
+}
+
+.kn-cone {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 26%;
+  height: 82%;
+  translate: -50% 0;
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  background: linear-gradient(rgb(255 244 214 / 0.2), rgb(255 244 214 / 0.05));
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.kn-pool {
+  position: absolute;
+  left: 50%;
+  bottom: 16%;
+  width: 24%;
+  height: 10%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 244 214 / 0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.kn-spot.is-on .kn-cone,
+.kn-spot.is-on .kn-pool {
+  opacity: 1;
+}
+
+/* lyrics screen */
+.kn-screen {
+  left: 30%;
+  width: 40%;
+  top: 6%;
+  height: 40%;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  gap: 1.2cqw;
+  padding: 2cqw;
+  box-sizing: border-box;
+  border-radius: 1.2cqw;
+  background: #0e0619;
+  box-shadow: 0 0 0 0.25cqw rgb(255 111 224 / 0.55), 0 1.5cqw 3cqw rgb(0 0 0 / 0.35);
+  text-align: center;
+}
+
+.kn-screen-title {
+  font: 700 3.4cqw/1.1 "Montserrat", system-ui, sans-serif;
+}
+
+.kn-screen-sub {
+  font-size: max(13px, 1.9cqw);
+  color: var(--kn-muted);
+}
+
+.kn-screen-line {
+  font: 500 2.1cqw/1.4 "JetBrains Mono", monospace;
+  font-variant-ligatures: none;
+  color: #ffd6f6;
+}
+
+.kn-screen[data-mode='skip'] {
+  box-shadow: 0 0 0 0.25cqw var(--kn-amber), 0 1.5cqw 3cqw rgb(0 0 0 / 0.35);
+}
+
+.kn-screen[data-mode='skip'] .kn-screen-line {
+  color: var(--kn-amber);
+}
+
+/* rejected bin */
+.kn-bin {
+  left: 6%;
+  bottom: 9%;
+  width: 7cqw;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  z-index: 3;
+}
+
+.kn-bin svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.kn-bin-label {
+  position: absolute;
+  bottom: calc(100% + 0.8cqh);
+  display: flex;
+  align-items: center;
+  gap: 0.6cqw;
+  padding: 0.4cqw 1cqw;
+  border-radius: 999px;
+  background: rgb(27 12 46 / 0.9);
+  border: 1px solid var(--kn-line);
+  color: var(--kn-muted);
+  font: 600 max(12px, 1.6cqw) "Open Sans", system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.kn-bin-count {
+  min-width: 1.6cqw;
+  padding: 0 0.6cqw;
+  border-radius: 999px;
+  background: var(--text, #faf9f8);
+  color: var(--kn-ink);
+  text-align: center;
+  font-family: "Montserrat", system-ui, sans-serif;
+}
+
+/* the dock: the concept of the page */
+.kn-dock {
+  left: 76%;
+  bottom: 20%;
+  width: 9cqw;
+  translate: -50% 0;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+}
+
+.kn-dock svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.kn-dock-ring {
+  fill: none;
+  stroke: var(--kn-green);
+  stroke-width: 2.5;
+  transition: stroke 0.3s ease;
+}
+
+.kn-dock-label {
+  position: absolute;
+  top: 100%;
+  margin-top: 0.4cqh;
+  padding: 0.35cqw 1.1cqw;
+  border-radius: 999px;
+  background: var(--kn-green);
+  color: #062a1c;
+  font: 700 max(12px, 1.65cqw) "Open Sans", system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.kn-scene[data-mic='lent'] .kn-dock-ring {
+  stroke: var(--kn-line);
+}
+
+.kn-scene[data-mic='lent'] .kn-dock-label {
+  background: var(--kn-accent);
+  color: var(--kn-ink);
+}
+
+.kn-scene[data-mic='lost'] .kn-dock-ring {
+  stroke: var(--kn-red);
+}
+
+.kn-scene[data-mic='lost'] .kn-dock-label {
+  background: var(--kn-red);
+  color: #2b0a10;
+}
+
+/* the mic */
+.kn-mic {
+  width: 3cqw;
+  translate: -50% 0;
+  transform-origin: 50% 70%;
+  z-index: 6;
+}
+
+.kn-mic svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.kn-mic-led {
+  fill: var(--kn-green);
+}
+
+.kn-scene[data-mic='lent'] .kn-mic-led {
+  fill: var(--kn-accent);
+}
+
+.kn-scene[data-mic='lost'] .kn-mic-led {
+  fill: var(--kn-red);
+}
+
+.kn-mic-tag {
+  position: absolute;
+  left: 50%;
+  bottom: 120%;
+  translate: -50% 0;
+  rotate: -78deg;
+  padding: 0.3cqw 1cqw;
+  border-radius: 999px;
+  background: var(--kn-red);
+  color: #2b0a10;
+  font: 700 max(12px, 1.6cqw) "Open Sans", system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.kn-mic-tag:empty {
+  display: none;
+}
+
+.kn-mic.is-shaking {
+  animation: kn-shake 0.15s linear 4;
+}
+
+.kn-toast {
+  left: 76%;
+  bottom: 3%;
+  translate: -50% 0;
+  padding: 0.7cqw 1.2cqw;
+  border-radius: 999px;
+  background: var(--kn-green);
+  color: #062a1c;
+  font: 700 max(12px, 1.6cqw) "Open Sans", system-ui, sans-serif;
+  white-space: nowrap;
+  z-index: 8;
+}
+
+/* the request card: accepted, or dropped into the bin */
+.kn-card {
+  left: 2%;
+  top: 17%;
+  width: 24%;
+  display: grid;
+  gap: 0.5cqw;
+  padding: 1cqw 1.2cqw;
+  box-sizing: border-box;
+  border-radius: 1cqw;
+  background: rgb(27 12 46 / 0.92);
+  border: 1px solid var(--kn-line);
+  border-top: 0.35cqw solid var(--kn-muted);
+  box-shadow: 0 1cqw 2cqw rgb(0 0 0 / 0.3);
+  z-index: 9;
+  transition: top 0.45s ease-in, left 0.45s ease-in, scale 0.45s ease-in, opacity 0.45s ease;
+  animation: kn-pop 0.3s ease-out;
+}
+
+.kn-card-from {
+  font-size: max(10px, 1.3cqw);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--kn-muted);
+}
+
+.kn-json {
+  font-size: max(11px, 1.6cqw);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.kn-verdict {
+  font-size: max(11px, 1.5cqw);
+  font-weight: 700;
+}
+
+.kn-card.is-ok {
+  border-top-color: var(--kn-green);
+}
+
+.kn-card.is-ok .kn-verdict {
+  color: var(--kn-green);
+}
+
+.kn-card.is-rejected {
+  border-top-color: var(--kn-red);
+}
+
+.kn-card.is-rejected .kn-verdict {
+  color: var(--kn-red);
+}
+
+.kn-card.is-binned {
+  top: 72%;
+  left: -6%;
+  scale: 0.25;
+  opacity: 0;
+}
+
+.kn-card.is-gone {
+  opacity: 0;
+}
+
+/* waiting card over the stage */
+.kn-waiting {
+  left: 50%;
+  top: 46%;
+  translate: -50% 0;
+  z-index: 15;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: min(300px, 42%);
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgb(27 12 46 / 0.94);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--kn-muted);
+}
+
+.kn-waiting[hidden] {
+  display: none;
+}
+
+.kn-waiting strong {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 1.05rem;
+  color: var(--kn-yellow);
+}
+
+.kn-waiting-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  color: var(--kn-yellow);
+}
+
+/* singers */
+.kn-people {
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.kn-singer {
+  position: absolute;
+  bottom: 20%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  transition: left var(--walk, 700ms) cubic-bezier(.45, .05, .4, 1), opacity 0.5s ease;
+}
+
+.kn-singer.is-arriving,
+.kn-singer.is-leaving {
+  opacity: 0;
+}
+
+.kn-figure svg {
+  display: block;
+  width: 14cqh;
+  height: auto;
+}
+
+.kn-name {
+  margin-bottom: 0.6cqh;
+  font: 700 max(13px, 3.2cqh) "Montserrat", system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.kn-arm {
+  transform-box: view-box;
+  transform-origin: 45px 57px;
+  transition: transform 0.4s ease;
+}
+
+.kn-singer.has-mic .kn-arm {
+  transform: rotate(-150deg);
+}
+
+.kn-sing-mouth,
+.kn-frown,
+.kn-singer.is-singing .kn-smile,
+.kn-singer.is-sad .kn-smile {
+  display: none;
+}
+
+.kn-singer.is-singing .kn-sing-mouth,
+.kn-singer.is-sad .kn-frown {
+  display: inline;
+}
+
+/* ---------- caption under the stage ---------- */
+
+.kn-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.kn-latest,
+.kn-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--kn-muted);
+  font-size: 0.95rem;
+}
+
+.kn-latest[hidden] {
+  display: none;
+}
+
+.kn-latest code {
+  color: var(--text, #faf9f8);
+  font-size: 1rem;
+}
+
+.kn-latest .kn-icon {
+  color: var(--kn-accent);
+}
+
+.kn-status .kn-icon {
+  color: var(--kn-green);
+}
+
+.kn-status.is-waiting .kn-icon,
+.kn-status.is-waiting strong {
+  color: var(--kn-yellow);
+}
+
+.kn-status.is-error,
+.kn-status.is-error .kn-icon {
+  color: #ffb4ab;
+}
+
+/* ---------- small sign-up form ---------- */
+
+.kn-signup {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.kn-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.kn-form input {
+  width: 9.5em;
+  box-sizing: border-box;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--kn-line);
+  background: transparent;
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+.kn-form input[type='number'] {
+  width: 6.5em;
+}
+
+.kn-form input::placeholder {
+  color: var(--kn-muted);
+}
+
+.kn-form button {
+  padding: 7px 16px;
+  border: 1px solid var(--kn-accent);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: 700 0.88rem "Montserrat", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.kn-form button:hover {
+  background: rgb(255 111 224 / 0.12);
+}
+
+.kn-signup.is-closed .kn-form {
+  opacity: 0.45;
+}
+
+.kn-signup-note {
+  min-height: 1.3em;
+  font-size: 0.85rem;
+  color: var(--kn-muted);
+}
+
+@keyframes kn-shake {
+  25% { transform: translateX(-0.6cqw); }
+  75% { transform: translateX(0.6cqw); }
+}
+
+@keyframes kn-pop {
+  from { opacity: 0; translate: 0 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kn-scene *,
+  .kn-scene *::before,
+  .kn-scene *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.kn-scene [hidden] {
+  display: none !important;
+}

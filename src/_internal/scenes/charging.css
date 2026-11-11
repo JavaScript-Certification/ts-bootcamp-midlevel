@@ -1,0 +1,334 @@
+/* Exercise 1 scene: the charging car park. Everything is scoped under .cs-root */
+.cs-root {
+  --cs-navy: #00273f;
+  --cs-surface: #0b3553;
+  --cs-surface-2: #164466;
+  --cs-blue: #3178c6;
+  --cs-blue-light: #358ef1;
+  --cs-yellow: #f1dd35;
+  --cs-text: #faf9f8;
+  --cs-muted: #a9bdcf;
+  --cs-green: #4be0a6;
+  --cs-red: #ff6f61;
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+  font-family: "Open Sans", system-ui, sans-serif;
+  color: var(--cs-text);
+}
+
+.cs-root .cs-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cs-root .cs-mono,
+.cs-root code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+}
+
+/* ---------- stage ---------- */
+
+.cs-root .cs-stage {
+  position: relative;
+  height: 440px;
+  overflow: hidden;
+}
+
+.cs-root .cs-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cs-root .cs-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cs-root .cs-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+.cs-root .cs-label[hidden] {
+  display: none;
+}
+
+/* label of a bay: the text your describe returned */
+.cs-root .cs-bay-label {
+  --cs-state: var(--cs-muted);
+  width: max-content;
+  max-width: var(--cs-bay-room, 150px);
+  box-sizing: border-box;
+  padding: 7px 10px 8px;
+  border-radius: 10px;
+  background: rgb(0 39 63 / 0.88);
+  border: 1px solid rgb(169 189 207 / 0.22);
+  border-top: 3px solid var(--cs-state);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 0.3);
+  animation: cs-pop 0.35s ease-out;
+}
+
+.cs-root .cs-bay-label::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  translate: -50% 0;
+  rotate: 45deg;
+  background: rgb(0 39 63 / 0.88);
+  border-right: 1px solid rgb(169 189 207 / 0.22);
+  border-bottom: 1px solid rgb(169 189 207 / 0.22);
+}
+
+.cs-root .cs-bay-label.cs-is-latest {
+  border-color: rgb(241 221 53 / 0.75);
+  border-top-color: var(--cs-state);
+}
+
+.cs-root .cs-bay-label.cs-has-problem {
+  border-color: var(--cs-red);
+}
+
+.cs-root .cs-bay-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cs-state);
+  white-space: nowrap;
+}
+
+.cs-root .cs-bay-state {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-root .cs-bay-text {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--cs-text);
+  overflow-wrap: anywhere;
+}
+
+.cs-root .cs-bay-wait {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--cs-yellow);
+}
+
+.cs-root .cs-latest-badge {
+  position: absolute;
+  top: -11px;
+  right: 8px;
+  padding: 2px 8px;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.3);
+  border-radius: 999px;
+  background: var(--cs-yellow);
+  color: var(--cs-navy);
+  font-size: 0.62rem;
+}
+
+.cs-root .cs-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cs-state);
+  box-shadow: 0 0 8px var(--cs-state);
+  flex: none;
+}
+
+.cs-root .cs-state-available { --cs-state: var(--cs-green); }
+.cs-root .cs-state-charging { --cs-state: var(--cs-blue-light); }
+.cs-root .cs-state-faulted { --cs-state: var(--cs-red); }
+.cs-root .cs-state-reserved { --cs-state: var(--cs-yellow); }
+.cs-root .cs-state-unknown { --cs-state: var(--cs-muted); }
+
+/* label of the bin */
+.cs-root .cs-bin-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: rgb(0 39 63 / 0.88);
+  border: 1px solid rgb(169 189 207 / 0.25);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cs-muted);
+  white-space: nowrap;
+}
+
+.cs-root .cs-bin-count {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--cs-text);
+  color: var(--cs-navy);
+  text-align: center;
+  font-family: "Montserrat", system-ui, sans-serif;
+}
+
+/* toolbar: replay button and legend */
+.cs-root .cs-toolbar {
+  position: absolute;
+  inset: 14px 14px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.cs-root .cs-replay {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--cs-yellow);
+  color: var(--cs-navy);
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.cs-root .cs-replay:hover {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.cs-root .cs-replay:active {
+  transform: translateY(1px);
+}
+
+.cs-root .cs-replay:focus-visible {
+  outline: 3px solid var(--cs-text);
+  outline-offset: 3px;
+}
+
+/* the empty lot waits for step 2 */
+.cs-root .cs-waiting {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  max-width: 320px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: rgb(0 39 63 / 0.9);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--cs-muted);
+}
+
+.cs-root .cs-waiting[hidden] {
+  display: none;
+}
+
+.cs-root .cs-waiting strong {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 1.05rem;
+  color: var(--cs-yellow);
+}
+
+.cs-root .cs-waiting-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--cs-yellow);
+}
+
+.cs-root .cs-no-webgl .cs-waiting {
+  top: 40%;
+}
+
+/* ---------- caption under the stage ---------- */
+
+.cs-root .cs-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.cs-root .cs-caption p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--cs-muted);
+  font-size: 0.95rem;
+}
+
+.cs-root .cs-caption-latest {
+  font-size: 1rem;
+}
+
+.cs-root .cs-caption-latest code {
+  color: var(--cs-text);
+}
+
+.cs-root .cs-caption-latest .cs-icon,
+.cs-root .cs-caption-status.is-waiting .cs-icon,
+.cs-root .cs-caption-status.is-waiting strong {
+  color: var(--cs-yellow);
+}
+
+.cs-root .cs-caption-status .cs-icon {
+  color: var(--cs-green);
+}
+
+.cs-root .cs-caption-status.is-error,
+.cs-root .cs-caption-status.is-error .cs-icon,
+.cs-root .cs-problem-text {
+  color: #ffb4ab;
+}
+
+@keyframes cs-pop {
+  from {
+    opacity: 0;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 860px) {
+  .cs-root .cs-stage {
+    height: 360px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-root .cs-bay-label {
+    animation: none;
+  }
+}

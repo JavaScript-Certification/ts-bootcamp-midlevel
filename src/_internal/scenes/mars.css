@@ -1,0 +1,290 @@
+/* Exercise 5 scene: Mars and its rovers. Everything is scoped under .mars-scene */
+.mars-scene {
+  --mars-navy: #00273f;
+  --mars-text: #faf9f8;
+  --mars-muted: #a9bdcf;
+  --mars-blue: #358ef1;
+  --mars-yellow: #f1dd35;
+  --mars-ok: #4be0a6;
+  --mars-offline: #ff6f61;
+  --mars-failed: #ff9f43;
+  margin-top: 28px;
+  display: grid;
+  gap: 16px;
+  font-family: "Open Sans", system-ui, sans-serif;
+  color: var(--mars-text);
+}
+
+.mars-scene .mars-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.mars-scene code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 500;
+}
+
+/* ---------- stage ---------- */
+
+.mars-scene .mars-stage {
+  position: relative;
+  /* fits under the intro on a short screen */
+  height: clamp(280px, 100vh - 360px, 440px);
+  overflow: hidden;
+}
+
+.mars-scene .mars-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mars-scene .mars-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* the card of a rover: what your reportLine says */
+.mars-scene .mars-label {
+  --tone: var(--mars-muted);
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: 18px -50%;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 344px;
+  padding: 5px 10px 6px;
+  border-radius: 10px;
+  background: rgb(0 39 63 / 0.88);
+  border: 1px solid rgb(169 189 207 / 0.22);
+  border-left: 3px solid var(--tone);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 0.3);
+  transition: opacity 0.4s ease;
+  will-change: transform;
+}
+
+.mars-scene .mars-label[data-side="left"] {
+  translate: calc(-100% - 18px) -50%;
+}
+
+.mars-scene .mars-label.is-hidden {
+  opacity: 0;
+}
+
+.mars-scene [data-visual="pinging"] { --tone: var(--mars-blue); }
+.mars-scene [data-visual="retrying"] { --tone: var(--mars-yellow); }
+.mars-scene [data-visual="ok"] { --tone: var(--mars-ok); }
+.mars-scene [data-visual="offline"] { --tone: var(--mars-offline); }
+.mars-scene [data-visual="failed"] { --tone: var(--mars-failed); }
+
+.mars-scene .mars-label-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.mars-scene .mars-label-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+
+.mars-scene .mars-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 8px var(--tone);
+  flex: none;
+}
+
+.mars-scene .mars-label-text {
+  min-width: 0;
+  white-space: normal;
+  font: 500 0.76rem/1.35 "JetBrains Mono", ui-monospace, monospace;
+}
+
+.mars-scene .mars-label:not(.is-latest) .mars-label-text {
+  color: var(--mars-muted);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* the rover that answered last: its full report line, lifted a little */
+.mars-scene .mars-label.is-latest {
+  background: rgb(0 39 63 / 0.96);
+  border-color: rgb(169 189 207 / 0.4);
+  z-index: 1;
+}
+
+.mars-scene .mars-earth {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mars-muted);
+}
+
+/* the primary button, top left of the stage */
+.mars-scene .mars-ping {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mars-yellow);
+  color: var(--mars-navy);
+  font: 700 0.9rem/1.2 "Montserrat", system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.mars-scene .mars-ping:hover:not(:disabled) {
+  background: #f6e866;
+  transform: translateY(-1px);
+}
+
+.mars-scene .mars-ping:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.mars-scene .mars-ping:focus-visible {
+  outline: 3px solid var(--mars-text);
+  outline-offset: 3px;
+}
+
+.mars-scene .mars-ping:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* the starter waits for a step */
+.mars-scene .mars-waiting {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  max-width: 340px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: rgb(0 39 63 / 0.9);
+  border: 1px dashed rgb(241 221 53 / 0.6);
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--mars-muted);
+}
+
+.mars-scene .mars-waiting[hidden] {
+  display: none;
+}
+
+.mars-scene .mars-waiting strong {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 1.05rem;
+  color: var(--mars-yellow);
+}
+
+.mars-scene .mars-waiting-icon {
+  width: 26px;
+  height: 26px;
+  color: var(--mars-yellow);
+}
+
+/* without WebGL: the cards become a simple list */
+.mars-scene .mars-stage--flat {
+  height: auto;
+  padding: 64px 14px 14px;
+}
+
+.mars-scene .mars-stage--flat .mars-overlay,
+.mars-scene .mars-stage--flat .mars-waiting {
+  position: static;
+  translate: none;
+}
+
+.mars-scene .mars-stage--flat .mars-overlay {
+  display: grid;
+  gap: 8px;
+}
+
+.mars-scene .mars-stage--flat .mars-label {
+  position: static;
+  translate: none;
+  transform: none !important;
+}
+
+/* ---------- caption under the stage ---------- */
+
+.mars-scene .mars-caption {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+}
+
+.mars-scene .mars-caption p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--mars-muted);
+  font-size: 0.95rem;
+}
+
+.mars-scene .mars-caption-latest {
+  font-size: 1rem;
+}
+
+.mars-scene .mars-caption-latest code {
+  color: var(--mars-text);
+}
+
+.mars-scene .mars-caption-latest .mars-icon,
+.mars-scene .mars-caption-status.is-waiting .mars-icon,
+.mars-scene .mars-caption-status.is-waiting strong {
+  color: var(--mars-yellow);
+}
+
+.mars-scene .mars-caption-status.is-done .mars-icon {
+  color: var(--mars-ok);
+}
+
+.mars-scene .mars-caption-status.is-error,
+.mars-scene .mars-caption-status.is-error .mars-icon {
+  color: #ffb4ab;
+}
+
+.mars-crash {
+  color: #ffb4ab;
+}
+
+@media (max-width: 860px) {
+  .mars-scene .mars-stage {
+    height: clamp(280px, 100vh - 380px, 380px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mars-scene * {
+    transition: none !important;
+  }
+}
