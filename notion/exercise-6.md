@@ -20,45 +20,27 @@ Edit `src/6-begin.ts`. Each step matches a `// Step k` comment.
 
 ## Step 1 - Check the minutes (3 min)
 
-`singer` and `song` are already checked. Check `minutes` the same way, then replace `return null` with a new object:
+`singer` and `song` are already checked. Check `minutes` the same way (a number above 0), then return a new object with the three checked fields.
 
-```typescript
-if (!('minutes' in value) || typeof value.minutes !== 'number' || value.minutes <= 0) return null
-return { singer: value.singer, song: value.song, minutes: value.minutes }
-```
+<aside>
+💡 **Hint:** Read `value.minutes` before checking it, and the compiler stops you. Check first, then read.
+</aside>
 
 ✅ **Check:** press **Start the night**: Sam, Lena and Ana drop into the bin.
 
-## Step 2 - Give the mic back with using (4 min)
+## Step 2 - Give the mic back (4 min)
 
-Priya keeps the mic, so nobody else can sing. Make the mic `Disposable`:
+Priya keeps the mic, so nobody else can sing. Make the mic go back to its dock at the end of every song, even one that fails.
 
-```typescript
-export type Mic = Disposable & { singer: string }
-```
-
-Add this to the object `borrowMic` returns, after `singer,`:
-
-```typescript
-[Symbol.dispose]() { dock.giveBack() },
-```
-
-Then, in `perform`, replace `const` with `using`:
-
-```typescript
-using mic = borrowMic(dock, request.singer)
-```
+<aside>
+💡 **Hint:** Start by borrowing the mic with `using`, then follow the compiler: `Disposable`, `Symbol.dispose`.
+</aside>
 
 ✅ **Check:** Kofi's song fails, the mic still goes back to its dock, and Mo sings.
 
 ## Step 3 - Prove the input (3 min)
 
-`querySelector` gives an `Element | null`. Wrap the `throw` in an `instanceof` check, then return the element:
-
-```typescript
-if (!(element instanceof HTMLInputElement)) throw new Error(`Missing field ${selector}`)
-return element
-```
+`querySelector` gives an `Element | null`, not an input. Prove it is an `HTMLInputElement` before you return it, otherwise throw `Missing field <selector>`. No `as`, no `!`.
 
 ✅ **Check:** sign up Ana for Mr Brightside, 4 minutes. The page says “All steps done”, and `npm test` passes.
 

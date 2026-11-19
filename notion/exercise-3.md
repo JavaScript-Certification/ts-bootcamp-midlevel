@@ -18,46 +18,31 @@ You run the booking desk of the Moonline night train. The data and the logic are
 
 ## Step 1 - Freeze the classes, check the fares (3 min)
 
-Hover `CabinClass`: `string`. Add `as const` to the array, then `satisfies` to the fares:
+Hover `CabinClass`: it is just `string`. Make `cabinClasses` keep its exact values. Then make sure `fares` has a price for every class, without losing its own type. The sleeper costs 129.
 
-```typescript
-export const cabinClasses = ['seat', 'couchette', 'sleeper'] as const
-
-export const fares = { seat: 39, couchette: 69 } satisfies Record<CabinClass, number>
-```
-
-`error TS2741: Property 'sleeper' is missing in type '{ seat: number; couchette: number; }' but required in type 'Record<"couchette" | "seat" | "sleeper", number>'.` Add `sleeper: 129`.
+<aside>
+💡 **Hint:** `as const` for the first, `satisfies` for the second. The compiler will tell you which fare is missing.
+</aside>
 
 ✅ **Check:** the page moves on to “Waiting for step 3”.
 
 ## Step 2 - Derive the booking types (3 min)
 
-Replace the two hand-written copies:
+`BookingRequest` and `Ticket` are hand-written copies that will drift. Derive them instead: a request is a `Booking` without its `id`, and a ticket is what `issue` returns, read-only.
 
-```typescript
-export type BookingRequest = Omit<Booking, 'id'>
-export type Ticket = Readonly<ReturnType<typeof issue>>
-```
+<aside>
+💡 **Hint:** `Omit`, `Readonly` and `ReturnType`. `ReturnType` takes a type, so use `typeof issue`.
+</aside>
 
 ✅ **Check:** `npm run typecheck` is clean.
 
 ## Step 3 - Price the ticket (4 min)
 
-Replace `0` in `fare` with the price per night:
+`fare` uses `0` as the price per night. Use the fare of the booked cabin's class instead. The compiler will push back: the `Record<string, Cabin>` annotation forgot which cabins exist. Keep the check, keep the exact ids, and derive `CabinId` from them.
 
-```typescript
-return total(fares[cabins[booking.cabin].class], booking)
-```
-
-`error TS2532: Object is possibly 'undefined'.` The annotation `Record<string, Cabin>` forgot the cabin ids. Swap it for `satisfies`, and derive the ids:
-
-```typescript
-export const cabins = {
-  // ...
-} satisfies Record<string, Cabin>
-
-export type CabinId = keyof typeof cabins
-```
+<aside>
+💡 **Hint:** `satisfies` again, then `keyof typeof`.
+</aside>
 
 ✅ **Check:** every cabin window prints its ticket, the page says “All steps done”, and `npm test` passes.
 

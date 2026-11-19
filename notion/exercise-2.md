@@ -18,36 +18,31 @@ The board of a weekend food truck rally. The function bodies already work: you o
 
 ## Step 1 - Make `quickest` generic (4 min)
 
-Hover `fastDish`: `{ minutes: number } | undefined`. The dish is lost. Make `quickest` generic:
+Hover `fastDish`: `{ minutes: number } | undefined`. The dish type is lost. Make `quickest` generic, so it hands back the type it was given.
 
-```typescript
-export function quickest<T extends { minutes: number }>(items: readonly T[]): T | undefined {
-  let best: T | undefined
-```
-
-Try `<T>` alone first: `error TS2339: Property 'minutes' does not exist on type 'T'.` The constraint asks for what the body reads, nothing more.
+<aside>
+💡 **Hint:** With a bare type parameter, the body cannot read `minutes`. Constrain it to what the body reads, nothing more.
+</aside>
 
 ✅ **Check:** `fastDish` is a `Dish | undefined`, and Bao Down gets its “Quickest” badge.
 
 ## Step 2 - A default for `Lookup` (3 min)
 
-Add an error type `E`, with `string` as its default:
+`Lookup` always uses `string` for its error. Add a second type parameter for the error type, without breaking `findById`, which never names it.
 
-```typescript
-export type Lookup<T, E = string> = { found: true; value: T } | { found: false; error: E }
-```
-
-Without `= string`, `findById` breaks: `error TS2314: Generic type 'Lookup' requires 2 type argument(s).`
+<aside>
+💡 **Hint:** A type parameter can have a default.
+</aside>
 
 ✅ **Check:** “No match for T9” shows over the empty spot.
 
 ## Step 3 - Keep the exact stops (3 min)
 
-Hover `tour`: `string[]`. Add one keyword:
+Hover `tour`: `string[]`. Make `route` keep the exact stops, in order, without `as const` at the call site.
 
-```typescript
-export function route<const T extends readonly string[]>(stops: T): T {
-```
+<aside>
+💡 **Hint:** One keyword, in front of the type parameter.
+</aside>
 
 ✅ **Check:** `tour` is `readonly ["T2", "T4", "T1"]`, the stops are numbered 1 to 3, and `npm test` passes.
 

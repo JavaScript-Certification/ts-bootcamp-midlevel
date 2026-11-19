@@ -20,29 +20,17 @@ Edit `src/7-begin.ts`. Each step matches a `// Step k` comment.
 
 ## Step 1 - Import the Screening type (2 min)
 
-Delete the local `type Screening = ...` line, and import the real one with the `type` keyword:
+Delete the local `Screening` copy, and import the real type from `./_internal/rooftop-programme`.
 
-```typescript
-import { type Screening, tonight } from './_internal/rooftop-programme'
-```
+<aside>
+💡 **Hint:** With `verbatimModuleSyntax`, a type needs a type-only import.
+</aside>
 
 ✅ **Check:** no error, and the page moves on to “Waiting for step 2”.
 
 ## Step 2 - Declare the ReelBox global (4 min)
 
-The projector script adds a `ReelBox` global that TypeScript has never heard of. Read `src/_internal/reelbox.js`, then declare only what you use, above `filmFor`:
-
-```typescript
-declare const ReelBox: {
-  film(reel: string): Film | null
-}
-```
-
-In `filmFor`, replace `return null`:
-
-```typescript
-return ReelBox.film(reel)
-```
+The projector script adds a `ReelBox` global that TypeScript has never heard of. Read `src/_internal/reelbox.js`, declare only what you use, then make `filmFor` use it.
 
 <aside>
 💡 **Hint:** The compiler never checks your declaration against the JavaScript. What does `film` return for a missing reel?
@@ -52,12 +40,7 @@ return ReelBox.film(reel)
 
 ## Step 3 - Print the board (4 min)
 
-With `noUncheckedIndexedAccess`, `programme[0]` is a `Screening | undefined`. Prove it exists, then put it on top of the board:
-
-```typescript
-if (first === undefined) return ['Nothing on tonight']
-return [`Now showing: ${describe(first)}`, ...later]
-```
+With `noUncheckedIndexedAccess`, `programme[0]` may be `undefined`. Prove it exists, then put it on top of the board as `Now showing`. An empty programme gives `['Nothing on tonight']`.
 
 ✅ **Check:** the tickets show “Now showing” and “Later”. The page says “All steps done”, and `npm test` passes.
 

@@ -18,51 +18,23 @@ Charging stations send raw records, and some are broken. Every valid charger get
 
 ## Step 1 - Add a state (3 min)
 
-Add the `charging` state to `Charger`:
-
-```typescript
-| { id: string; status: 'charging'; vehicle: string; kWh: number }
-```
-
-The `never` check in `describe` now fails: `error TS2322: Type '{ id: string; status: "charging"; vehicle: string; kWh: number; }' is not assignable to type 'never'.` Add the missing case:
-
-```typescript
-case 'charging':
-  return `${charger.id}: charging ${charger.vehicle}, ${charger.kWh} kWh`
-```
+C2 is charging, a state your `Charger` union does not know yet. Add a `charging` member that carries its own data: a `vehicle` and its `kWh`. Then let the `never` check in `describe` tell you what is missing.
 
 ✅ **Check:** bay C2 shows `C2: charging EV-204, 18.5 kWh`.
 
 ## Step 2 - Predicate and assertion (3 min)
 
-Hover `valid` at the bottom of the file: `unknown[]`. Change two return types, and add the throw:
+Hover `valid` at the bottom of the file: TypeScript only knows `unknown[]`. Change the return type of `isCharger` so that `true` tells TypeScript the value is a `Charger`. Then turn `assertIsCharger` into an assertion function that throws `Invalid charger record` when the record is not a charger.
 
-```typescript
-export function isCharger(value: unknown): value is Charger {
+<aside>
+💡 **Hint:** Look up `value is ...` and `asserts value is ...`.
+</aside>
 
-export function assertIsCharger(value: unknown): asserts value is Charger {
-  if (!isCharger(value)) throw new Error('Invalid charger record')
-```
-
-✅ **Check:** `valid` is now a `Charger[]`, and the page says “Waiting for step 3”.
+✅ **Check:** `valid` is a `Charger[]`, and the page says “Waiting for step 3”.
 
 ## Step 3 - Follow the compiler (4 min)
 
-Add the `reserved` state:
-
-```typescript
-| { id: string; status: 'reserved'; until: string }
-```
-
-The `never` check points at `describe` again. Add the case there, then in `isCharger`:
-
-```typescript
-case 'reserved':
-  return `${charger.id}: reserved until ${charger.until}`
-
-case 'reserved':
-  return typeof value.until === 'string'
-```
+The stations now send a `reserved` state, with an `until` time. Add it to `Charger`, then follow the compiler.
 
 <aside>
 💡 **Hint:** The compiler trusts your predicate, so it cannot tell you about `isCharger`.

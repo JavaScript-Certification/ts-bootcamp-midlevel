@@ -20,43 +20,31 @@ Edit `src/4-begin.ts`. Each step matches a `// Step k` comment.
 
 ## Step 1 - Hide the code (3 min)
 
-`private` only exists for the compiler: `JSON.stringify` still sends the code to the lobby. Use a real private field instead. Change `code` to `#code` in its three places:
+`private` only exists for the compiler: `JSON.stringify` still sends the code to the lobby screen. Make `code` private at runtime too.
 
-```typescript
-#code: string
-this.#code = code
-return code === this.#code
-```
+<aside>
+💡 **Hint:** JavaScript has its own private fields.
+</aside>
 
 ✅ **Check:** the page moves on to “Waiting for step 2”.
 
 ## Step 2 - Make Room abstract (3 min)
 
-Nobody should create a plain `Room`, and every room must write its own hint:
+Nobody should create a plain `Room`, every room must write its own hint, and every room must be `Resettable`.
 
-```typescript
-export abstract class Room extends RoomBase implements Resettable {
-```
-
-```typescript
-abstract hint(): string
-```
+<aside>
+💡 **Hint:** An abstract class can have abstract methods, with no body.
+</aside>
 
 ✅ **Check:** the page moves on to “Waiting for step 3”.
 
 ## Step 3 - Log every attempt (4 min)
 
-The wrapper in `logged` is written. Add the line that writes to the audit, just before `return result`:
+The wrapper in `logged` is written, but it logs nothing. Make it push one line per call into `audit`, like `Attic: tryCode(1234) returned false`, then decorate `tryCode`.
 
-```typescript
-audit.push(`${this.name}: ${String(context.name)}(${args.join(', ')}) returned ${String(result)}`)
-```
-
-Then decorate `tryCode`:
-
-```typescript
-@logged
-```
+<aside>
+💡 **Hint:** `context.name` is the name of the decorated method.
+</aside>
 
 ✅ **Check:** the CCTV log shows the two attempts, and `npm test` passes.
 
