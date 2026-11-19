@@ -37,11 +37,26 @@ const typeErrorsInPage = () => checker({
   enableBuild: false,
 })
 
+// Saving an exercise file always reloads its page. Scenes that read their own source (`?raw`, exercises 2 and 7)
+// put the file twice in Vite's module graph, and Vite then decides that no update is needed: the page would keep
+// showing the old step checks until a manual refresh.
+function reloadOnExerciseSave(): Plugin {
+  return {
+    name: 'reload-on-exercise-save',
+    apply: 'serve',
+    handleHotUpdate({ file, server }) {
+      if (!/\/src\/\d+-(begin|end)\.ts$/.test(file)) return
+      server.ws.send({ type: 'full-reload' })
+      return []
+    },
+  }
+}
+
 // every N-begin.html / N-end.html page at the root is an entry
 const pages = readdirSync(root).filter(file => file.endsWith('.html'))
 
 export default defineConfig({
-  plugins: [standardDecorators(), ...(process.env.VITEST ? [] : [typeErrorsInPage()])],
+  plugins: [standardDecorators(), reloadOnExerciseSave(), ...(process.env.VITEST ? [] : [typeErrorsInPage()])],
   build: {
     rollupOptions: {
       input: Object.fromEntries(pages.map(page => [page.replace('.html', ''), resolve(root, page)])),
