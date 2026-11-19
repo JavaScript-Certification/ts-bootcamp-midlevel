@@ -25,8 +25,9 @@ export function describe(screening: Screening): string {
 // Step 3: with noUncheckedIndexedAccess, programme[0] may be undefined
 export function board(programme: readonly Screening[]): string[] {
   const first = programme[0]
+  const later = programme.slice(1).map(screening => `Later: ${describe(screening)}`)
   if (first === undefined) return ['Nothing on tonight']
-  return [`Now showing: ${describe(first)}`, ...programme.slice(1).map(screening => `Later: ${describe(screening)}`)]
+  return [`Now showing: ${describe(first)}`, ...later]
 }
 
 // Shows your work on the page. You do not need to change this line.

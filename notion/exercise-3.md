@@ -14,65 +14,52 @@
 
 ## Goal
 
-You run the booking desk of the Moonline night train. The types in the file were copied by hand, and they have started to drift. You derive them instead, with `as const`, `satisfies`, `typeof`, `keyof` and utility types, so every cabin window can print its ticket.
-
-Edit `src/3-begin.ts`. Each step matches a `// Step k` comment.
+You run the booking desk of the Moonline night train. The data and the logic are written: you derive the types from them with `as const`, `satisfies`, `typeof`, `keyof` and utility types, so they can never drift. Edit `src/3-begin.ts`.
 
 ## Step 1 - Freeze the classes, check the fares (3 min)
 
-Hover `CabinClass`: it is just `string`. Add `as const` to the list, then check the fares with `satisfies`:
+Hover `CabinClass`: `string`. Add `as const` to the array, then `satisfies` to the fares:
 
 ```typescript
 export const cabinClasses = ['seat', 'couchette', 'sleeper'] as const
 
-export const fares = {
-  seat: 39,
-  couchette: 69,
-} satisfies Record<CabinClass, number>
+export const fares = { seat: 39, couchette: 69 } satisfies Record<CabinClass, number>
 ```
 
-The compiler names the fare you forgot:
+`error TS2741: Property 'sleeper' is missing in type '{ seat: number; couchette: number; }' but required in type 'Record<"couchette" | "seat" | "sleeper", number>'.` Add `sleeper: 129`.
 
-```
-error TS2741: Property 'sleeper' is missing in type '{ seat: number; couchette: number; }' but required in type 'Record<"couchette" | "seat" | "sleeper", number>'.
-```
-
-Add `sleeper: 129`.
-
-✅ **Check:** `CabinClass` is `'seat' | 'couchette' | 'sleeper'`, and the sleeper car shows 129 EUR.
+✅ **Check:** the page moves on to “Waiting for step 3”.
 
 ## Step 2 - Derive the booking types (3 min)
 
-Replace the two hand-written copies with one line each:
+Replace the two hand-written copies:
 
 ```typescript
 export type BookingRequest = Omit<Booking, 'id'>
 export type Ticket = Readonly<ReturnType<typeof issue>>
 ```
 
-✅ **Check:** hover `Ticket`: every field is `readonly`, and `cabin` follows `Booking`.
+✅ **Check:** `npm run typecheck` is clean.
 
-## Step 3 - Derive the cabin ids, price the ticket (4 min)
+## Step 3 - Price the ticket (4 min)
 
-Swap the `Record<string, Cabin>` annotation for `satisfies`, derive `CabinId` from the keys, then price the booking in `fare` (`total` is given):
+Replace `0` in `fare` with the price per night:
+
+```typescript
+return total(fares[cabins[booking.cabin].class], booking)
+```
+
+`error TS2532: Object is possibly 'undefined'.` The annotation `Record<string, Cabin>` forgot the cabin ids. Swap it for `satisfies`, and derive the ids:
 
 ```typescript
 export const cabins = {
-  // ...the three cabins
+  // ...
 } satisfies Record<string, Cabin>
 
 export type CabinId = keyof typeof cabins
-
-export function fare(booking: Booking): number {
-  return total(fares[cabins[booking.cabin].class], booking)
-}
 ```
 
-<aside>
-💡 **Hint:** With the old annotation, `cabins[booking.cabin]` fails with `Object is possibly 'undefined'.` With `CabinId`, every cabin exists.
-</aside>
-
-✅ **Check:** `CabinId` is `'11A' | '12C' | '14D'`, every cabin window prints its ticket, and `npm test` passes.
+✅ **Check:** every cabin window prints its ticket, the page says “All steps done”, and `npm test` passes.
 
 ## Expected result
 

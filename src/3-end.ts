@@ -3,15 +3,11 @@ import { mountScene } from './_internal/scenes/train'
 
 // Exercise 3: Moonline Night Train (solution)
 
-// Step 1: as const keeps the exact classes, satisfies checks a fare exists for each one
+// Step 1: as const keeps the exact classes, satisfies checks there is a fare for each one
 export const cabinClasses = ['seat', 'couchette', 'sleeper'] as const
 export type CabinClass = (typeof cabinClasses)[number]
 
-export const fares = {
-  seat: 39,
-  couchette: 69,
-  sleeper: 129,
-} satisfies Record<CabinClass, number>
+export const fares = { seat: 39, couchette: 69, sleeper: 129 } satisfies Record<CabinClass, number>
 
 // Step 2: derived types follow Booking and issue, they can never drift
 export type Booking = { id: string; passenger: string; cabin: CabinId; nights: number; breakfast: boolean }
@@ -37,12 +33,10 @@ export function fare(booking: Booking): number {
   return total(fares[cabins[booking.cabin].class], booking)
 }
 
-// Tonight's bookings
 const tonight: BookingRequest[] = [
   { passenger: 'Ada', cabin: '14D', nights: 1, breakfast: true },
   { passenger: 'Grace', cabin: '12C', nights: 2, breakfast: false },
   { passenger: 'Alan', cabin: '11A', nights: 1, breakfast: true },
 ]
 
-// Shows your work on the page. You do not need to change this line.
 mountScene({ cabinClasses, fares, cabins, bookings: tonight.map(book), issue })

@@ -20,60 +20,43 @@ Edit `src/7-begin.ts`. Each step matches a `// Step k` comment.
 
 ## Step 1 - Import the Screening type (2 min)
 
-Delete the local `Screening` type and import the real one, with the `type` keyword:
+Delete the local `type Screening = ...` line, and import the real one with the `type` keyword:
 
 ```typescript
 import { type Screening, tonight } from './_internal/rooftop-programme'
 ```
 
-Without `type`, `verbatimModuleSyntax` stops you:
-
-```
-error TS1484: 'Screening' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
-```
-
-✅ **Check:** the page moves on to “Waiting for step 2”.
+✅ **Check:** no error, and the page moves on to “Waiting for step 2”.
 
 ## Step 2 - Declare the ReelBox global (4 min)
 
-The projector script adds a `ReelBox` global, but TypeScript has never heard of it. Read `src/_internal/reelbox.js`, then declare only what you use:
+The projector script adds a `ReelBox` global that TypeScript has never heard of. Read `src/_internal/reelbox.js`, then declare only what you use, above `filmFor`:
 
 ```typescript
 declare const ReelBox: {
   film(reel: string): Film | null
 }
-
-export function filmFor(reel: string): Film | null {
-  return ReelBox.film(reel)
-}
 ```
 
-`filmFor` can return `null`, so `describe` handles the missing reel first:
+In `filmFor`, replace `return null`:
 
 ```typescript
-export function describe(screening: Screening): string {
-  const film = filmFor(screening.reel)
-  if (film === null) return `${screening.time} reel ${screening.reel} is missing`
-  return `${screening.time} ${film.title} (${film.year}), ${film.minutes} min`
-}
+return ReelBox.film(reel)
 ```
 
 <aside>
-💡 **Hint:** The compiler never checks your declaration against the JavaScript. Read the script: what does `film` return for a missing reel?
+💡 **Hint:** The compiler never checks your declaration against the JavaScript. What does `film` return for a missing reel?
 </aside>
 
 ✅ **Check:** press **Play the next reel**: Jaws plays, reel R-0404 shows static.
 
 ## Step 3 - Print the board (4 min)
 
-With `noUncheckedIndexedAccess`, `programme[0]` is a `Screening | undefined`. Prove it exists before you use it:
+With `noUncheckedIndexedAccess`, `programme[0]` is a `Screening | undefined`. Prove it exists, then put it on top of the board:
 
 ```typescript
-export function board(programme: readonly Screening[]): string[] {
-  const first = programme[0]
-  if (first === undefined) return ['Nothing on tonight']
-  return [`Now showing: ${describe(first)}`, ...programme.slice(1).map(screening => `Later: ${describe(screening)}`)]
-}
+if (first === undefined) return ['Nothing on tonight']
+return [`Now showing: ${describe(first)}`, ...later]
 ```
 
 ✅ **Check:** the tickets show “Now showing” and “Later”. The page says “All steps done”, and `npm test` passes.

@@ -18,52 +18,44 @@ It's karaoke night: song requests arrive as JSON text from the phones, and one m
 
 Edit `src/6-begin.ts`. Each step matches a `// Step k` comment.
 
-## Step 1 - Check the requests (4 min)
+## Step 1 - Check the minutes (3 min)
 
-A request comes from `JSON.parse`, so it is `unknown`. Check it field by field: each check narrows `value` a little more.
+`singer` and `song` are already checked. Check `minutes` the same way, then replace `return null` with a new object:
 
 ```typescript
-export function toSongRequest(value: unknown): SongRequest | null {
-  if (typeof value !== 'object' || value === null) return null
-  if (!('singer' in value) || typeof value.singer !== 'string') return null
-  if (!('song' in value) || typeof value.song !== 'string') return null
-  if (!('minutes' in value) || typeof value.minutes !== 'number' || value.minutes <= 0) return null
-  return { singer: value.singer, song: value.song, minutes: value.minutes }
-}
+if (!('minutes' in value) || typeof value.minutes !== 'number' || value.minutes <= 0) return null
+return { singer: value.singer, song: value.song, minutes: value.minutes }
 ```
 
 ✅ **Check:** press **Start the night**: Sam, Lena and Ana drop into the bin.
 
-## Step 2 - Give the mic back with using (3 min)
+## Step 2 - Give the mic back with using (4 min)
 
-Make `Mic` a `Disposable`: disposing it puts it back on the dock.
+Priya keeps the mic, so nobody else can sing. Make the mic `Disposable`:
 
 ```typescript
 export type Mic = Disposable & { singer: string }
-
-return {
-  singer,
-  [Symbol.dispose]() {
-    dock.giveBack()
-  },
-}
 ```
 
-Then borrow it in `perform` with `using`. It is disposed at the end of the block, even when `sing` throws:
+Add this to the object `borrowMic` returns, after `singer,`:
+
+```typescript
+[Symbol.dispose]() { dock.giveBack() },
+```
+
+Then, in `perform`, replace `const` with `using`:
 
 ```typescript
 using mic = borrowMic(dock, request.singer)
-return sing(dock, request)
 ```
 
-✅ **Check:** the mic flies back to its dock after Kofi's failed song, and Mo sings.
+✅ **Check:** Kofi's song fails, the mic still goes back to its dock, and Mo sings.
 
 ## Step 3 - Prove the input (3 min)
 
-`querySelector` gives you an `Element | null`, not an input. Prove it with `instanceof`, without `as` or `!`:
+`querySelector` gives an `Element | null`. Wrap the `throw` in an `instanceof` check, then return the element:
 
 ```typescript
-const element = root.querySelector(selector)
 if (!(element instanceof HTMLInputElement)) throw new Error(`Missing field ${selector}`)
 return element
 ```

@@ -156,7 +156,7 @@ function checkSteps(): StepCheck[] {
   return [
     { n: 1, done: !known || (/quickest\s*<\s*\w+\s+extends\b/.test(quickest) && noAny(quickest)), hint: 'quickest is not generic yet. Add T, then constrain it to what the body reads.' },
     { n: 2, done: !known || (/Lookup\s*<\s*\w+\s*,\s*\w+\s*=/.test(lookup) && !/error\s*:\s*string\b/.test(lookup)), hint: 'Lookup has no error type yet. Add E, with string as its default.' },
-    { n: 3, done: !known || (/route\s*<\s*const\s+\w+/.test(route) && noAny(route)), hint: 'route loses the exact stops. Make it generic with a const type parameter.' },
+    { n: 3, done: !known || (/route\s*<\s*const\s+\w+/.test(route) && noAny(route)), hint: 'route loses the exact stops. Add const before T.' },
   ]
 }
 

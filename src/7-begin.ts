@@ -7,20 +7,24 @@ import { mountScene } from './_internal/scenes/cinema'
 
 export type Film = { title: string; year: number; minutes: number }
 
-// Step 1: a type-only import, instead of this local copy
+// Step 1: import Screening from the programme, instead of this copy
 type Screening = { time: string; reel: string }
 
-// Step 2: declare the ReelBox global, then use it (and handle the missing reel)
+// Step 2: declare the ReelBox global (read src/_internal/reelbox.js), then use it here
 export function filmFor(reel: string): Film | null {
   return null
 }
 
 export function describe(screening: Screening): string {
-  return screening.time
+  const film = filmFor(screening.reel)
+  if (film === null) return `${screening.time} reel ${screening.reel} is missing`
+  return `${screening.time} ${film.title} (${film.year}), ${film.minutes} min`
 }
 
-// Step 3: prove the first screening exists
+// Step 3: prove the first screening exists, then put it on top of the board
 export function board(programme: readonly Screening[]): string[] {
+  const first = programme[0]
+  const later = programme.slice(1).map(screening => `Later: ${describe(screening)}`)
   return []
 }
 

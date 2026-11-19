@@ -14,13 +14,13 @@
 
 ## Goal
 
-Mission control pings four rovers on Mars, and some of them fail: a lost signal (try again), an offline rover (do not retry), or old firmware that throws plain strings. Once you are done, each rover shows a report line and nothing crashes. You practise Result types, `unknown` errors and `async` code.
+Mission control pings four rovers on Mars, and some of them fail: a lost signal (try again), an offline rover (do not retry), or old firmware that throws plain strings. Each rover gets a report line, and nothing crashes. You practise Result types, `unknown` errors and `async` code.
 
-Edit `src/5-begin.ts`. Each step matches a `// Step k` comment. `retryDelays` (a generator that yields `5`, `10`, `20`) and `sleep` are given.
+Edit `src/5-begin.ts`. Each step matches a `// Step k` comment.
 
-## Step 1 - Make Result a union (3 min)
+## Step 1 - Make Result a union (4 min)
 
-A success must carry a value and a failure an error, never both:
+Today a `Result` can be `ok` with no value. Make it a union:
 
 ```typescript
 export type Result<T, E> =
@@ -28,55 +28,34 @@ export type Result<T, E> =
   | { ok: false; error: E }
 ```
 
-Then narrow it in `reportLine`:
+`reportLine` breaks: `Property 'value' does not exist on type 'Result<Telemetry, string>'.` Narrow on `ok` instead:
 
 ```typescript
 if (!outcome.ok) return `${rover}: ${outcome.error}`
-return `${rover}: ${outcome.value.battery}% battery at ${outcome.value.site}`
 ```
 
-<aside>
-💡 **Hint:** With the old type, `outcome.value.battery` fails with `'outcome.value' is possibly 'undefined'.` With the union, checking `outcome.ok` is enough.
-</aside>
-
-✅ **Check:** the page says “Waiting for step 2”.
+✅ **Check:** `npm run typecheck` is clean again.
 
 ## Step 2 - Describe each failure (3 min)
 
-A caught error is `unknown`, so you narrow it before you read it. The most specific classes come first:
+A caught error is `unknown`. Add the two missing checks, between the given ones:
 
 ```typescript
-export function describeFailure(err: unknown): string {
-  if (err instanceof SignalLostError) return 'signal lost'
-  if (err instanceof RoverOfflineError) return `offline since ${err.since}`
-  if (err instanceof Error) return err.message
-  return `unknown failure: ${String(err)}`
-}
+if (err instanceof RoverOfflineError) return `offline since ${err.since}`
+if (err instanceof Error) return err.message
 ```
 
-✅ **Check:** the page says “Waiting for step 3”.
+✅ **Check:** the page moves on to step 3.
 
-## Step 3 - Retry, never reject (4 min)
+## Step 3 - Retry only a lost signal (3 min)
 
-Ping the rover. A lost signal is retried after each delay, every other failure becomes a `Result` straight away:
+The loop retries every failure, even a rover that is gone for good. In the `catch`, before `await sleep(delay)`:
 
 ```typescript
-for (const delay of retryDelays(5, 3)) {
-  try {
-    return { ok: true, value: await network.ping(rover) }
-  } catch (err) {
-    if (!(err instanceof SignalLostError)) return { ok: false, error: describeFailure(err) }
-    await sleep(delay)
-  }
-}
-return { ok: false, error: 'signal lost' }
+if (!(err instanceof SignalLostError)) return { ok: false, error: describeFailure(err) }
 ```
 
-<aside>
-💡 **Hint:** Keep the `await` inside the `try`. Without it, a rejection escapes the `catch`, and the compiler says `Type 'Promise<Telemetry>' is missing the following properties from type 'Telemetry': rover, battery, site`.
-</aside>
-
-✅ **Check:** perseverance shows `retry in 5 ms`, then turns green. The page says “All steps done”, and `npm test` passes.
+✅ **Check:** spirit is pinged once, and the page says “All steps done”.
 
 ## Expected result
 

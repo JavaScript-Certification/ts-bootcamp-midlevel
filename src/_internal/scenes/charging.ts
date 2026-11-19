@@ -11,8 +11,8 @@ type ChargerShape = { id: string; status: string }
 /** The functions exported by src/1-begin.ts (or src/1-end.ts) */
 export type ChargingApi<C extends ChargerShape> = {
   describe: (charger: C) => string
-  isCharger: (value: unknown) => value is C
-  assertIsCharger: (value: unknown) => asserts value is C
+  isCharger: (value: unknown) => boolean
+  assertIsCharger: (value: unknown) => void
 }
 
 // ---------- running your functions without letting them break the page ----------
@@ -63,6 +63,12 @@ function quietly<T>(run: () => T, fallback: T): T {
   }
 }
 
+/** describe's text, or a note when a state reaches the never branch at runtime (it then returns the record itself) */
+function describeText<C extends ChargerShape>(api: ChargingApi<C>, charger: C): string {
+  const text: unknown = api.describe(charger)
+  return typeof text === 'string' ? text : `no case for '${charger.status}'`
+}
+
 function labelOf(record: unknown): string {
   if (record === null) return 'null'
   const id = field(record, 'id')
@@ -89,10 +95,9 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
   // 1. the board itself, printed to the console like before
   let lines: string[] = []
   try {
-    const chargers = feed.filter(api.isCharger)
-    const last: unknown = latest
-    api.assertIsCharger(last)
-    lines = [...chargers.map(api.describe), `${feed.length - chargers.length} records rejected`, `Latest: ${api.describe(last)}`]
+    const chargers = feed.filter(record => api.isCharger(record)) as C[]
+    api.assertIsCharger(latest)
+    lines = [...chargers.map(c => describeText(api, c)), `${feed.length - chargers.length} records rejected`, `Latest: ${describeText(api, latest as C)}`]
   } catch (error) {
     fail(error)
   }
@@ -107,7 +112,7 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
       if (api.isCharger(record)) {
         ok = true
         order.push({ kind: 'bay', bay: accepted.length })
-        accepted.push(record)
+        accepted.push(record as C)
       }
     } catch (error) {
       fail(error)
@@ -131,7 +136,7 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
       code: typeof code === 'string' ? code : '',
     }
     try {
-      const text = String(api.describe(charger))
+      const text = describeText(api, charger)
       return { ...base, text, onlyId: text.trim() === id }
     } catch (error) {
       return { ...base, text: id, problem: fail(error), onlyId: false }
@@ -144,7 +149,7 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
   let latestInfo: Analysis['latest']
   try {
     api.assertIsCharger(last)
-    const text = String(api.describe(last))
+    const text = describeText(api, last as C)
     latestInfo = { id: latestId, text, onlyId: text.trim() === latestId }
   } catch (error) {
     latestInfo = { id: latestId, text: '', problem: fail(error), onlyId: false }
@@ -152,8 +157,8 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
 
   // 4. quiet probes that tell which steps are done (their errors are expected)
   const accepts = (value: unknown) => quietly(() => api.isCharger(value), false)
-  const describes = bays.some(bay => !bay.onlyId && !bay.problem) || (!latestInfo.onlyId && !latestInfo.problem)
-  const checks = accepts(feed[0]) && accepts(feed[1]) && accepts(feed[2]) && !accepts(feed[3]) && !accepts(null)
+  const handled = (text: string) => !text.startsWith('no case for')
+  const describes = bays.some(bay => bay.state === 'charging' && handled(bay.text) && !bay.problem) || (!latestInfo.problem && handled(latestInfo.text))
   const asserts = quietly(() => {
     api.assertIsCharger({ id: 'C4' })
     return false
@@ -161,14 +166,7 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
   const reserved = accepts(feed[4])
 
   const steps: StepCheck[] = [
-    { n: 1, done: describes, hint: 'describe still returns only the id. Switch on charger.status.' },
-    {
-      n: 2,
-      done: checks,
-      hint: accepted.length === 0
-        ? 'isCharger accepts no record yet, so every record drops into the bin.'
-        : 'isCharger should accept C1, C2 and C3, and reject C4 and null.',
-    },
+    { n: 1, done: describes, hint: 'C2 is charging, a state your Charger type does not know yet. Add it.' },
     { n: 2, done: asserts, hint: 'assertIsCharger lets a bad record through. Throw when isCharger says no.' },
     { n: 3, done: reserved, hint: 'C5 is reserved and still lands in the bin. Add the reserved state.' },
   ]

@@ -14,83 +14,61 @@
 
 ## Goal
 
-Charging stations send raw records, and some are broken. Every valid charger gets a bay in the car park, the rest drop into the bin. You practise discriminated unions, the `never` check, a type predicate and an assertion function.
+Charging stations send raw records, and some are broken. Every valid charger gets a bay, the rest drop into the bin. The runtime code is written: you only write the types that make it safe. Edit `src/1-begin.ts`.
 
-Edit `src/1-begin.ts`. Each step matches a `// Step k` comment.
+## Step 1 - Add a state (3 min)
 
-## Step 1 - Model the states (4 min)
-
-Replace `Charger` with one object type per state, so an `available` charger can never have a `vehicle`:
+Add the `charging` state to `Charger`:
 
 ```typescript
-export type Charger =
-  | { id: string; status: 'available' }
-  | { id: string; status: 'charging'; vehicle: string; kWh: number }
-  | { id: string; status: 'faulted'; code: string }
+| { id: string; status: 'charging'; vehicle: string; kWh: number }
 ```
 
-In `describe`, switch on `charger.status` and end with a `never` check:
+The `never` check in `describe` now fails: `error TS2322: Type '{ id: string; status: "charging"; vehicle: string; kWh: number; }' is not assignable to type 'never'.` Add the missing case:
 
 ```typescript
-switch (charger.status) {
-  case 'available':
-    return `${charger.id}: available`
-  case 'charging':
-    return `${charger.id}: charging ${charger.vehicle}, ${charger.kWh} kWh`
-  case 'faulted':
-    return `${charger.id}: out of order (${charger.code})`
-  default: {
-    const unhandled: never = charger
-    return unhandled
-  }
-}
+case 'charging':
+  return `${charger.id}: charging ${charger.vehicle}, ${charger.kWh} kWh`
 ```
 
-✅ **Check:** the page shows `Latest: C2: charging EV-204, 21 kWh`.
+✅ **Check:** bay C2 shows `C2: charging EV-204, 18.5 kWh`.
 
-## Step 2 - Check the raw records (3 min)
+## Step 2 - Predicate and assertion (3 min)
 
-The records are `unknown`, so you prove their shape before you trust them. `isRecord` is given:
+Hover `valid` at the bottom of the file: `unknown[]`. Change two return types, and add the throw:
 
 ```typescript
 export function isCharger(value: unknown): value is Charger {
-  if (!isRecord(value) || typeof value.id !== 'string') return false
-  switch (value.status) {
-    case 'available':
-      return true
-    case 'charging':
-      return typeof value.vehicle === 'string' && typeof value.kWh === 'number'
-    case 'faulted':
-      return typeof value.code === 'string'
-    default:
-      return false
-  }
-}
+
+export function assertIsCharger(value: unknown): asserts value is Charger {
+  if (!isCharger(value)) throw new Error('Invalid charger record')
 ```
 
-Then make `assertIsCharger` throw when `isCharger` says no:
+✅ **Check:** `valid` is now a `Charger[]`, and the page says “Waiting for step 3”.
+
+## Step 3 - Follow the compiler (4 min)
+
+Add the `reserved` state:
 
 ```typescript
-if (!isCharger(value)) throw new Error('Invalid charger record')
+| { id: string; status: 'reserved'; until: string }
 ```
 
-✅ **Check:** C1, C2 and C3 get a bay. C4 (no `kWh`), C5 and `null` drop into the bin.
+The `never` check points at `describe` again. Add the case there, then in `isCharger`:
 
-## Step 3 - Follow the compiler (3 min)
+```typescript
+case 'reserved':
+  return `${charger.id}: reserved until ${charger.until}`
 
-Add `| { id: string; status: 'reserved'; until: string }` to `Charger`. The `never` check now points at `describe`:
-
+case 'reserved':
+  return typeof value.until === 'string'
 ```
-error TS2322: Type '{ id: string; status: "reserved"; until: string; }' is not assignable to type 'never'.
-```
-
-Add the case (`C5: reserved until 18:30`), then add it to `isCharger` too.
 
 <aside>
-💡 **Hint:** The compiler trusts your predicate, so it cannot warn you about `isCharger`.
+💡 **Hint:** The compiler trusts your predicate, so it cannot tell you about `isCharger`.
 </aside>
 
-✅ **Check:** the page says “All steps done”, and `npm test` passes.
+✅ **Check:** C5 gets a bay, the page says “All steps done”, and `npm test` passes.
 
 ## Expected result
 

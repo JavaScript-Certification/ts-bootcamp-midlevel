@@ -14,53 +14,42 @@
 
 ## Goal
 
-The board of a weekend food truck rally. You write three small generic helpers: one with a constraint, one with a default, one with a `const` type parameter. Each step lights up part of the rally street.
+The board of a weekend food truck rally. The function bodies already work: you only change their types, with a generic constraint, a default type parameter and a `const` type parameter. Edit `src/2-begin.ts`.
 
-Edit `src/2-begin.ts`. Each step matches a `// Step k` comment. Hover `fastDish` and `tour` at the bottom of the file to see your types.
+## Step 1 - Make `quickest` generic (4 min)
 
-## Step 1 - A generic with a constraint (4 min)
-
-`quickest` should return the item with the shortest `minutes`, and keep the caller's type: a `Truck` in, a `Truck` out. Give it a type parameter, then constrain it to what the body reads:
+Hover `fastDish`: `{ minutes: number } | undefined`. The dish is lost. Make `quickest` generic:
 
 ```typescript
 export function quickest<T extends { minutes: number }>(items: readonly T[]): T | undefined {
   let best: T | undefined
-  for (const item of items) {
-    if (!best || item.minutes < best.minutes) best = item
-  }
-  return best
-}
 ```
 
-<aside>
-💡 **Hint:** Try `<T>` alone first. The compiler says `Property 'minutes' does not exist on type 'T'`: that's what the constraint is for.
-</aside>
+Try `<T>` alone first: `error TS2339: Property 'minutes' does not exist on type 'T'.` The constraint asks for what the body reads, nothing more.
 
 ✅ **Check:** `fastDish` is a `Dish | undefined`, and Bao Down gets its “Quickest” badge.
 
-## Step 2 - A default type parameter (3 min)
+## Step 2 - A default for `Lookup` (3 min)
 
-Add a second type parameter `E` for the error, with `string` as its default:
+Add an error type `E`, with `string` as its default:
 
 ```typescript
-export type Lookup<T, E = string> =
-  | { found: true; value: T }
-  | { found: false; error: E }
+export type Lookup<T, E = string> = { found: true; value: T } | { found: false; error: E }
 ```
 
-✅ **Check:** `findById` still compiles without naming `E`, and “No match for T9” shows over the empty spot.
+Without `= string`, `findById` breaks: `error TS2314: Generic type 'Lookup' requires 2 type argument(s).`
 
-## Step 3 - A const type parameter (3 min)
+✅ **Check:** “No match for T9” shows over the empty spot.
 
-`route` should keep the exact stops, in order:
+## Step 3 - Keep the exact stops (3 min)
+
+Hover `tour`: `string[]`. Add one keyword:
 
 ```typescript
 export function route<const T extends readonly string[]>(stops: T): T {
-  return stops
-}
 ```
 
-✅ **Check:** `tour` is `readonly ["T2", "T4", "T1"]`, the page says “All steps done”, and `npm test` passes.
+✅ **Check:** `tour` is `readonly ["T2", "T4", "T1"]`, the stops are numbered 1 to 3, and `npm test` passes.
 
 ## Expected result
 

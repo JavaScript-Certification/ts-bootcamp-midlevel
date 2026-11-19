@@ -32,7 +32,7 @@ export function perform(dock: MicDock, request: SongRequest): string {
   return sing(dock, request)
 }
 
-// Step 3: prove the element is an input
+// Step 3: one instanceof check rules out null and every other element
 export function field(root: ParentNode, selector: string): HTMLInputElement {
   const element = root.querySelector(selector)
   if (!(element instanceof HTMLInputElement)) throw new Error(`Missing field ${selector}`)

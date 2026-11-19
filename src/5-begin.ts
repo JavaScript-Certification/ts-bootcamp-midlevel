@@ -3,21 +3,30 @@ import { mountScene } from './_internal/scenes/mars'
 
 // Exercise 5: Mars Rover Uplink. Follow the steps in the Notion page.
 
-// Step 1: a Result union (a success with a value, or a failure with an error), then narrow it
+// Step 1: make Result a union, then fix reportLine
 export type Result<T, E> = { ok: boolean; value?: T; error?: E }
 
 export function reportLine(rover: string, outcome: Result<Telemetry, string>): string {
-  return `${rover}: no report yet`
+  if (!outcome.value) return `${rover}: ${outcome.error}`
+  return `${rover}: ${outcome.value.battery}% battery at ${outcome.value.site}`
 }
 
-// Step 2: a caught error is unknown, narrow it with instanceof
+// Step 2: the two missing instanceof checks
 export function describeFailure(err: unknown): string {
+  if (err instanceof SignalLostError) return 'signal lost'
   return `unknown failure: ${String(err)}`
 }
 
-// Step 3: ping the rover, retry a lost signal (retryDelays and sleep are given), never reject
+// Step 3: retry only a lost signal
 export async function pingWithRetry(network: Network, rover: string): Promise<Result<Telemetry, string>> {
-  return { ok: false, error: 'not pinged' }
+  for (const delay of retryDelays(5, 3)) {
+    try {
+      return { ok: true, value: await network.ping(rover) }
+    } catch (err) {
+      await sleep(delay)
+    }
+  }
+  return { ok: false, error: 'signal lost' }
 }
 
 // Shows your work on the page. You do not need to change this line.

@@ -175,8 +175,8 @@ const WORDS: Record<Visual, string> = {
 }
 
 const HINTS = [
-  'reportLine still says “no report yet”. Make Result a union on ok, then narrow it.',
-  'describeFailure says “unknown failure” for everything. Narrow err with instanceof.',
+  'reportLine does not report both outcomes yet. Make Result a union on ok, then narrow it.',
+  'describeFailure only knows a lost signal. Narrow err with instanceof.',
 ] as const
 
 function buildScene(host: HTMLElement, api: UplinkApi): void {

@@ -35,7 +35,7 @@ group('step 2: the ReelBox global', () => {
   })
 })
 
-group('step 2: describe', () => {
+group('step 2: the ReelBox global (describe is given)', () => {
   it('describes a missing reel without crashing', () => {
     expect(describe({ time: '21:45', reel: 'R-0404' })).toBe('21:45 reel R-0404 is missing')
   })

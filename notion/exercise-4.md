@@ -16,49 +16,47 @@
 
 You run the control desk of an escape room. The lobby screen must not show the secret code, every room must write its own hint, and a CCTV log lists every code a team tries. You practise real private fields, abstract classes and a typed decorator.
 
-Edit `src/4-begin.ts`. Each step matches a `// Step k` comment. `RoomBase` is given: it holds the team, counts the attempts and resets the room.
+Edit `src/4-begin.ts`. Each step matches a `// Step k` comment.
 
 ## Step 1 - Hide the code (3 min)
 
-`private` is only checked by the compiler: at runtime the field is still there, so `JSON.stringify` sends it to the lobby screen. Use a `#` field instead, in its three places:
+`private` only exists for the compiler: `JSON.stringify` still sends the code to the lobby. Use a real private field instead. Change `code` to `#code` in its three places:
 
 ```typescript
 #code: string
-
 this.#code = code
-
 return code === this.#code
 ```
 
-✅ **Check:** the lobby says “Lobby sees no code”.
+✅ **Check:** the page moves on to “Waiting for step 2”.
 
 ## Step 2 - Make Room abstract (3 min)
 
 Nobody should create a plain `Room`, and every room must write its own hint:
 
 ```typescript
-import { type Resettable, RoomBase, audit } from './_internal/escape-room'
-
 export abstract class Room extends RoomBase implements Resettable {
-  // ...
-  abstract hint(): string
 ```
-
-✅ **Check:** the Hint link on the keypad turns into `abstract hint()`. Click it: the Attic gives its own hint.
-
-## Step 3 - Log every attempt with a decorator (4 min)
-
-In `logged`, return a wrapper that calls the method, writes one line into `audit`, and returns the result:
 
 ```typescript
-return function (this: This, ...args: Args): Return {
-  const result = method.apply(this, args)
-  audit.push(`${this.name}: ${String(context.name)}(${args.join(', ')}) returned ${String(result)}`)
-  return result
-}
+abstract hint(): string
 ```
 
-Then put `@logged` on the line above `tryCode`.
+✅ **Check:** the page moves on to “Waiting for step 3”.
+
+## Step 3 - Log every attempt (4 min)
+
+The wrapper in `logged` is written. Add the line that writes to the audit, just before `return result`:
+
+```typescript
+audit.push(`${this.name}: ${String(context.name)}(${args.join(', ')}) returned ${String(result)}`)
+```
+
+Then decorate `tryCode`:
+
+```typescript
+@logged
+```
 
 ✅ **Check:** the CCTV log shows the two attempts, and `npm test` passes.
 

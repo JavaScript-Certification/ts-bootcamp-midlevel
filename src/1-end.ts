@@ -1,9 +1,9 @@
-import { isRecord } from './_internal/charger-feed'
+import { feed, isRecord } from './_internal/charger-feed'
 import { mountScene } from './_internal/scenes/charging'
 
 // Exercise 1: Charging Station Board (solution)
 
-// Step 1 and 3: one object type per state, with `status` as the discriminant
+// Step 1 and 3: one object type per state
 export type Charger =
   | { id: string; status: 'available' }
   | { id: string; status: 'charging'; vehicle: string; kWh: number }
@@ -27,7 +27,7 @@ export function describe(charger: Charger): string {
   }
 }
 
-// Step 2: check the data each status needs
+// Step 2: a type predicate and an assertion function
 export function isCharger(value: unknown): value is Charger {
   if (!isRecord(value) || typeof value.id !== 'string') return false
   switch (value.status) {
@@ -48,5 +48,7 @@ export function assertIsCharger(value: unknown): asserts value is Charger {
   if (!isCharger(value)) throw new Error('Invalid charger record')
 }
 
-// Shows your work on the page. You do not need to change this line.
+// Hover `valid`: what does TypeScript know about it?
+const valid = feed.filter(isCharger)
+
 mountScene({ describe, isCharger, assertIsCharger })
