@@ -1,7 +1,8 @@
 import { describe as group, expectTypeOf, it } from 'vitest'
-import { Room, Team, Waitlist, logged } from '#exercise/4'
+import { Team, Waitlist } from '../src/_internal/escape-room'
+import { Room, logged } from '#exercise/4'
 
-group('step 1: parameter properties and #code', () => {
+group('given: Team uses readonly parameter properties', () => {
   it('makes the team read-only', () => {
     const team = new Team('Night Owls', 3)
     expectTypeOf(team.name).toEqualTypeOf<string>()

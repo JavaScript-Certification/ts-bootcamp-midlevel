@@ -2,40 +2,43 @@
 
 ---
 
-⏰ 15 mins
+**⏰ 10 min**
 
 ---
 
 <aside>
-💡 If you haven’t already set up the boilerplate code, do so now with these instructions
+💡 **Tip:** If you haven’t already set up the boilerplate code, do so now with these instructions.
 </aside>
 
-## What you will build
+1. Open the following file: `/1-begin.html`
 
-Charging stations send raw records, and some are broken. The page turns them into a car park: one bay per valid charger, a bin for the rest. You practise discriminated unions, the `never` check, a type predicate and an assertion function.
+## Goal
 
-## Before you start
+Charging stations send raw records, and some are broken. Every valid charger gets a bay in the car park, the rest drop into the bin. You practise discriminated unions, the `never` check, a type predicate and an assertion function.
 
-1. Run `npm run dev` and open `/1-begin.html` in your browser.
-2. Open `src/1-begin.ts`. Each step below matches a `// Step k` comment in the file. Everything else is already written.
+Edit `src/1-begin.ts`. Each step matches a `// Step k` comment.
 
-## Step 1 - Model the states and describe them (5 mins)
+## Step 1 - Model the states (4 min)
 
-Each state should carry only its own data, so an `available` charger can never have a `vehicle`.
-
-Replace `Charger` with a union on `status`. In `describe`, switch on `charger.status` with one `case` per state and a `never` check at the end:
+Replace `Charger` with one object type per state, so an `available` charger can never have a `vehicle`:
 
 ```typescript
 export type Charger =
   | { id: string; status: 'available' }
-  | { id: string; status: 'charging' /* vehicle and kWh */ }
-  | { id: string; status: 'faulted' /* code */ }
+  | { id: string; status: 'charging'; vehicle: string; kWh: number }
+  | { id: string; status: 'faulted'; code: string }
+```
 
+In `describe`, switch on `charger.status` and end with a `never` check:
+
+```typescript
 switch (charger.status) {
   case 'available':
     return `${charger.id}: available`
-  // 'charging' returns `C2: charging EV-204, 18.5 kWh`
-  // 'faulted' returns `C3: out of order (E42)`
+  case 'charging':
+    return `${charger.id}: charging ${charger.vehicle}, ${charger.kWh} kWh`
+  case 'faulted':
+    return `${charger.id}: out of order (${charger.code})`
   default: {
     const unhandled: never = charger
     return unhandled
@@ -43,64 +46,57 @@ switch (charger.status) {
 }
 ```
 
-✅ **Check:** bay C1 shows `C1: available`, and the `step 1` tests pass (`npm test`).
+✅ **Check:** the page shows `Latest: C2: charging EV-204, 21 kWh`.
 
-## Step 2 - Check the raw records (5 mins)
+## Step 2 - Check the raw records (3 min)
 
-The records come from outside, so you check them before you trust them.
-
-In the given outline of `isCharger`, add a `case` for `charging` and `faulted` that checks their fields with `typeof`. Then make `assertIsCharger` throw when `isCharger` says no:
+The records are `unknown`, so you prove their shape before you trust them. `isRecord` is given:
 
 ```typescript
-case 'charging':
-  return typeof value.vehicle === 'string' && ...
-case 'faulted':
-  return ...
+export function isCharger(value: unknown): value is Charger {
+  if (!isRecord(value) || typeof value.id !== 'string') return false
+  switch (value.status) {
+    case 'available':
+      return true
+    case 'charging':
+      return typeof value.vehicle === 'string' && typeof value.kWh === 'number'
+    case 'faulted':
+      return typeof value.code === 'string'
+    default:
+      return false
+  }
+}
+```
 
-// in assertIsCharger
+Then make `assertIsCharger` throw when `isCharger` says no:
+
+```typescript
 if (!isCharger(value)) throw new Error('Invalid charger record')
 ```
 
-<aside>
-💡 HINT: `C4` is a `charging` record without `kWh`. It must land in the bin.
-</aside>
+✅ **Check:** C1, C2 and C3 get a bay. C4 (no `kWh`), C5 and `null` drop into the bin.
 
-✅ **Check:** C1, C2 and C3 get a bay, C4 and `null` drop into the bin, and the `step 2` tests pass.
+## Step 3 - Follow the compiler (3 min)
 
-## Step 3 - Add a state and follow the compiler (5 mins)
-
-A new state should break the build everywhere you forgot it.
-
-Add `{ id: string; status: 'reserved'; until: string }` to `Charger`, then run `npm run typecheck`. The `never` check points at `describe`:
+Add `| { id: string; status: 'reserved'; until: string }` to `Charger`. The `never` check now points at `describe`:
 
 ```
 error TS2322: Type '{ id: string; status: "reserved"; until: string; }' is not assignable to type 'never'.
 ```
 
-Add the case to `describe` (`C5: reserved until 18:30`), then to `isCharger`.
+Add the case (`C5: reserved until 18:30`), then add it to `isCharger` too.
 
 <aside>
-💡 HINT: The compiler trusts your predicate, so it cannot warn you about `isCharger`. Add that case yourself.
+💡 **Hint:** The compiler trusts your predicate, so it cannot warn you about `isCharger`.
 </aside>
 
-✅ **Check:** C5 gets a bay, and the `step 3` tests pass.
+✅ **Check:** the page says “All steps done”, and `npm test` passes.
 
 ## Expected result
 
 ![The finished exercise 1 page](images/exercise-1-result.png)
 
-The car park shows four bays (C1, C2, C3 and C5), two crates in the bin, and a yellow ring on C2, the latest record. The console prints:
-
-```
-C1: available
-C2: charging EV-204, 18.5 kWh
-C3: out of order (E42)
-C5: reserved until 18:30
-2 records rejected
-Latest: C2: charging EV-204, 21 kWh
-```
-
-Run `npm test`: everything passes. The solution is in `src/1-end.ts`.
+Four bays (C1, C2, C3, C5), two crates in the bin, a yellow ring on C2. The solution is in `src/1-end.ts`.
 
 ## Helpful Resources
 

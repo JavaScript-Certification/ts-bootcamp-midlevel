@@ -1,7 +1,7 @@
 // The Mars mission control scene of exercise 5. You do not need to modify this file.
 // It runs your functions and shows what they do: beams to each rover, retries, the uplink report.
 import * as THREE from 'three'
-import { type Network, type Telemetry, RoverOfflineError, SignalLostError, sleep } from '../rover-network'
+import { type Network, type Telemetry, RoverOfflineError, SignalLostError, createNetwork, retryDelays, roster, sleep } from '../rover-network'
 import './mars.css'
 
 /** A report as reportLine expects it once step 1 is done. */
@@ -10,15 +10,16 @@ export type Report = { ok: true; value: Telemetry } | { ok: false; error: string
 /** What pingWithRetry resolves to: the loose starter shape or the union of step 1. */
 export type Outcome = { ok: boolean; value?: Telemetry; error?: string }
 
-/** The functions and values of the exercise that the scene runs. */
+/** The functions of the exercise that the scene runs. */
 export type UplinkApi = {
-  roster: readonly string[]
-  createNetwork: () => Network
   reportLine: (rover: string, outcome: Report) => string
-  retryDelays: (base: number, attempts: number) => Iterable<number>
   describeFailure: (err: unknown) => string
   pingWithRetry: (network: Network, rover: string) => Promise<Outcome>
-  uplink: (network: Network, rovers: readonly string[]) => Promise<string[]>
+}
+
+/** Asks every rover at the same time, one report line each */
+function uplink(api: UplinkApi, network: Network, rovers: readonly string[]): Promise<string[]> {
+  return Promise.all(rovers.map(async rover => api.reportLine(rover, toReport(await api.pingWithRetry(network, rover)))))
 }
 
 type Visual = 'idle' | 'pinging' | 'retrying' | 'ok' | 'offline' | 'failed' | 'waiting'
@@ -47,7 +48,7 @@ const RETURN_MS = 650
 
 /** Shows your work on the page (and prints the report in the console). */
 export function mountScene(api: UplinkApi): void {
-  api.uplink(api.createNetwork(), api.roster).then(
+  uplink(api, createNetwork(), roster).then(
     lines => lines.forEach(line => console.log(line)),
     (err: unknown) => console.error('The uplink failed:', err),
   )
@@ -207,7 +208,7 @@ function buildScene(host: HTMLElement, api: UplinkApi): void {
   // one short card per rover: its name and one status word.
   // Only the rover that answered last shows its full report line.
   const labels = new Map<string, Label>()
-  for (const rover of api.roster) {
+  for (const rover of roster) {
     const label = el('div', 'mars-label')
     const head = el('div', 'mars-label-head')
     const text = el('span', 'mars-label-text', WORDS.idle)
@@ -221,7 +222,7 @@ function buildScene(host: HTMLElement, api: UplinkApi): void {
 
   let globe: Globe
   try {
-    globe = createGlobe(stage, canvas, api.roster, labels, earthLabel, reduced)
+    globe = createGlobe(stage, canvas, roster, labels, earthLabel, reduced)
   }
   catch (err) {
     console.error(err)
@@ -298,7 +299,7 @@ function buildScene(host: HTMLElement, api: UplinkApi): void {
   // the delays of the given retryDelays, read once for the retry words on the cards
   let delays: number[] = []
   try {
-    delays = firstValues(api.retryDelays(5, 3), 10)
+    delays = firstValues(retryDelays(5, 3), 10)
   }
   catch {
     delays = []
@@ -309,10 +310,10 @@ function buildScene(host: HTMLElement, api: UplinkApi): void {
 
   // a network that shows every ping on the globe, at a pace a human can follow
   function watchedNetwork(runs: Map<string, RoverRun>): Network {
-    const real = api.createNetwork()
+    const real = createNetwork()
     return {
       async ping(rover) {
-        const index = Math.max(0, api.roster.indexOf(rover))
+        const index = Math.max(0, roster.indexOf(rover))
         const run = runs.get(rover) ?? { pings: 0 }
         runs.set(rover, run)
         run.pings++
@@ -358,13 +359,13 @@ function buildScene(host: HTMLElement, api: UplinkApi): void {
     steps[2] = { done: false, pending: true, detail: '' }
     renderStatus()
     latestRover = undefined
-    for (const rover of api.roster) setRover(rover, 'idle')
+    for (const rover of roster) setRover(rover, 'idle')
 
-    const runs = new Map<string, RoverRun>(api.roster.map(rover => [rover, { pings: 0 }]))
+    const runs = new Map<string, RoverRun>(roster.map(rover => [rover, { pings: 0 }]))
     const network = watchedNetwork(runs)
     const problems: string[] = []
 
-    await Promise.all(api.roster.map(async (rover) => {
+    await Promise.all(roster.map(async (rover) => {
       const roverRun = runs.get(rover) ?? { pings: 0 }
       let report: Report
       try {

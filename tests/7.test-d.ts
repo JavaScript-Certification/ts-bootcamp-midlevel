@@ -17,7 +17,7 @@ group('step 2: the ReelBox global', () => {
   })
 })
 
-group('given: describe', () => {
+group('step 2: describe', () => {
   it('needs a whole screening', () => {
     expectTypeOf(describe).returns.toEqualTypeOf<string>()
     // @ts-expect-error a screening needs its reel

@@ -2,91 +2,87 @@
 
 ---
 
-⏰ 15 mins
+**⏰ 10 min**
 
 ---
 
 <aside>
-💡 If you haven’t already set up the boilerplate code, do so now with these instructions
+💡 **Tip:** If you haven’t already set up the boilerplate code, do so now with these instructions.
 </aside>
 
-## What you will build
+1. Open the following file: `/7-begin.html`
+
+## Goal
 
 A rooftop cinema runs its projector with an untyped script from 2014. You build tonight's board on top of it: the screen plays each reel, the tickets show the board. You practise type-only imports, declaring a global, and `noUncheckedIndexedAccess`.
 
-## Before you start
+Edit `src/7-begin.ts`. Each step matches a `// Step k` comment.
 
-1. Run `npm run dev` and open `/7-begin.html` in your browser.
-2. Open `src/7-begin.ts`. Each step below matches a `// Step k` comment in the file. Everything else is already written.
+## Step 1 - Import the Screening type (2 min)
 
-## Step 1 - Import the Screening type (4 mins)
-
-The file and the booking app should share one `Screening` type.
-
-Delete the local `Screening` type and import the real one from `./_internal/rooftop-programme`. With `verbatimModuleSyntax` on, a type needs the `type` keyword:
+Delete the local `Screening` type and import the real one, with the `type` keyword:
 
 ```typescript
 import { type Screening, tonight } from './_internal/rooftop-programme'
 ```
 
-<aside>
-💡 HINT: Try it without `type` first and run `npm run typecheck`. You get `error TS1484: 'Screening' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.`
-</aside>
+Without `type`, `verbatimModuleSyntax` stops you:
 
-✅ **Check:** `npm run typecheck` shows no TS1484, and the `step 1` tests pass (`npm test`).
+```
+error TS1484: 'Screening' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+```
 
-## Step 2 - Declare the ReelBox global (5 mins)
+✅ **Check:** the page moves on to “Waiting for step 2”.
 
-`ReelBox` is `unknown`, so every use fails with `error TS18046: 'ReelBox' is of type 'unknown'.`
+## Step 2 - Declare the ReelBox global (4 min)
 
-Read `src/_internal/reelbox.js`. Declare only the `film` method, then make `filmFor` return `ReelBox.film(reel)`:
+The projector script adds a `ReelBox` global, but TypeScript has never heard of it. Read `src/_internal/reelbox.js`, then declare only what you use:
 
 ```typescript
 declare const ReelBox: {
-  film(reel: string): ...
+  film(reel: string): Film | null
+}
+
+export function filmFor(reel: string): Film | null {
+  return ReelBox.film(reel)
+}
+```
+
+`filmFor` can return `null`, so `describe` handles the missing reel first:
+
+```typescript
+export function describe(screening: Screening): string {
+  const film = filmFor(screening.reel)
+  if (film === null) return `${screening.time} reel ${screening.reel} is missing`
+  return `${screening.time} ${film.title} (${film.year}), ${film.minutes} min`
 }
 ```
 
 <aside>
-💡 HINT: The compiler never checks your declaration against the JavaScript. What does `film` return for a missing reel?
+💡 **Hint:** The compiler never checks your declaration against the JavaScript. Read the script: what does `film` return for a missing reel?
 </aside>
 
-✅ **Check:** the screen plays Jaws, reel R-0404 shows static, and the `step 2` tests pass.
+✅ **Check:** press **Play the next reel**: Jaws plays, reel R-0404 shows static.
 
-## Step 3 - Print the board (6 mins)
+## Step 3 - Print the board (4 min)
 
-`noUncheckedIndexedAccess` makes you prove a list item exists before you use it.
-
-Write `board(programme)`. The first screening starts with `Now showing: `, the others with `Later: `. An empty programme gives `['Nothing on tonight']`. Use the given `describe` for each line:
+With `noUncheckedIndexedAccess`, `programme[0]` is a `Screening | undefined`. Prove it exists before you use it:
 
 ```typescript
-const first = programme[0]
-if (first === undefined) return ...
-return [
-  `Now showing: ${describe(first)}`,
-  ...programme.slice(1).map(...),
-]
+export function board(programme: readonly Screening[]): string[] {
+  const first = programme[0]
+  if (first === undefined) return ['Nothing on tonight']
+  return [`Now showing: ${describe(first)}`, ...programme.slice(1).map(screening => `Later: ${describe(screening)}`)]
+}
 ```
 
-<aside>
-💡 HINT: Without the check, `first` is a `Screening | undefined`, and you get `error TS2345: Argument of type 'Screening | undefined' is not assignable to parameter of type 'Screening'.`
-</aside>
-
-✅ **Check:** the tickets on the deck show the board, and the `step 3` tests pass.
+✅ **Check:** the tickets show “Now showing” and “Later”. The page says “All steps done”, and `npm test` passes.
 
 ## Expected result
 
 ![The finished exercise 7 page](images/exercise-7-result.png)
 
-Each ticket shows its board label and time, and Play sends the next reel to the screen: a film title card, or static for the missing reel. The console prints:
-
-```
-Now showing: 19:30 Jaws (1975), 124 min
-Later: 21:45 reel R-0404 is missing
-Later: 23:50 Spirited Away (2001), 125 min
-```
-
-Run `npm test`: everything passes. The solution is in `src/7-end.ts`.
+Each ticket shows its board label and time, and Play sends the next reel to the screen. The solution is in `src/7-end.ts`.
 
 ## Helpful Resources
 

@@ -1,13 +1,6 @@
 import { describe as group, expectTypeOf, it } from 'vitest'
 import { type Dish, type Truck, type Volunteer, dishes, trucks, volunteers } from '../src/_internal/food-truck-rally'
-import { type Lookup, findById, first, quickest, route } from '#exercise/2'
-
-group('given: first', () => {
-  it('returns the element type of the list', () => {
-    expectTypeOf(first(trucks)).toEqualTypeOf<Truck | undefined>()
-    expectTypeOf(first([4, 8])).toEqualTypeOf<number | undefined>()
-  })
-})
+import { type Lookup, findById, quickest, route } from '#exercise/2'
 
 group('step 1: quickest', () => {
   it('returns the caller type, not just { minutes: number }', () => {

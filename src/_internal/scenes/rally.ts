@@ -7,11 +7,9 @@ type LookupResult<T> = { found: true; value: T } | { found: false; error: string
 
 // What the scene needs from src/2-begin.ts (or 2-end.ts)
 export type RallyApi = {
-  first: <T>(items: readonly T[]) => T | undefined
-  quickest: <T extends { minutes: number }>(items: readonly T[]) => T | undefined
+  quickest: (items: readonly Truck[]) => unknown
   findById: <T extends { id: string }>(items: readonly T[], id: string) => LookupResult<T>
   route: (stops: readonly string[]) => readonly string[]
-  report: () => string[]
 }
 
 // the same stops and the same missing truck as in report()
@@ -155,9 +153,8 @@ function checkSteps(): StepCheck[] {
   const quickest = declaration(code, /export function quickest\b/)
   const lookup = declaration(code, /export type Lookup\b/)
   const route = declaration(code, /export function route\b/)
-  // first is given: its "Opening" banner is always on
   return [
-    { n: 1, done: !known || (/quickest\s*<\s*\w+\s+extends\b/.test(quickest) && noAny(quickest)), hint: 'quickest still takes any. Use T, then constrain it to what the body reads.' },
+    { n: 1, done: !known || (/quickest\s*<\s*\w+\s+extends\b/.test(quickest) && noAny(quickest)), hint: 'quickest is not generic yet. Add T, then constrain it to what the body reads.' },
     { n: 2, done: !known || (/Lookup\s*<\s*\w+\s*,\s*\w+\s*=/.test(lookup) && !/error\s*:\s*string\b/.test(lookup)), hint: 'Lookup has no error type yet. Add E, with string as its default.' },
     { n: 3, done: !known || (/route\s*<\s*const\s+\w+/.test(route) && noAny(route)), hint: 'route loses the exact stops. Make it generic with a const type parameter.' },
   ]
@@ -180,18 +177,36 @@ class Unexpected extends Error {}
 
 // ---------- the scene ----------
 
+// the rally board, printed in the console
+function board(api: RallyApi): string[] {
+  const shortQueue = api.quickest(trucks)
+  const fastDish = api.quickest(dishes)
+  const missing = api.findById(trucks, missingId)
+  const tour = api.route([...tastingStops]).map(id => {
+    const stop = api.findById(trucks, id)
+    return stop.found ? stop.value.name : stop.error
+  })
+  return [
+    `Opening truck: ${trucks[0]?.name ?? 'none'}`,
+    isTruck(shortQueue) ? `Shortest queue: ${shortQueue.name}, ${shortQueue.minutes} min` : 'Shortest queue: none, 0 min',
+    isDish(fastDish) ? `Fastest dish: ${fastDish.name}, ${fastDish.minutes} min` : 'Fastest dish: none, 0 min',
+    `${missingId}: ${missing.found ? missing.value.name : missing.error}`,
+    `Tasting route: ${tour.join(' > ')}`,
+  ]
+}
+
 export function mountScene(api: RallyApi): void {
   // the board lines still go to the console, as before
   if (typeof document === 'undefined') {
-    api.report().forEach(print)
+    board(api).forEach(print)
     return
   }
   const host = document.querySelector<HTMLElement>('#scene')
   if (!host) return
   try {
-    api.report().forEach(print)
+    board(api).forEach(print)
   } catch (error) {
-    console.warn('report() threw:', error)
+    console.warn('The board could not print:', error)
   }
 
   const root = el('div', 'rally-scene')
@@ -293,8 +308,8 @@ export function mountScene(api: RallyApi): void {
     const pause = (ms: number) => wait(reducedMotion() ? Math.min(ms, 250) : ms)
     try {
       await pause(500)
-      // first is given, so the opening banner always shows
-      const opener = call('first(trucks)', () => api.first(trucks), isTruck)
+      // the first truck opens the rally, so the opening banner always shows
+      const opener = call('trucks[0]', () => trucks[0], isTruck)
       tagsOf(spots.get(opener.id))?.append(el('span', 'rally-tag rally-tag--opening', 'Opening'))
       setLatest(`${opener.name} opens the rally`)
       await pause(700)

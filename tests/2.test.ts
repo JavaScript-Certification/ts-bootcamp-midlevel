@@ -4,18 +4,11 @@ import { dishes, trucks, volunteers } from '../src/_internal/food-truck-rally'
 
 // importing the exercise prints the board: keep the test output clean
 vi.spyOn(console, 'log').mockImplementation(() => {})
-const { findById, first, quickest, report, route } = await import('#exercise/2')
+const { findById, quickest, route } = await import('#exercise/2')
 const source = readFileSync(new URL(`../src/2-${process.env.SOLUTION ? 'end' : 'begin'}.ts`, import.meta.url), 'utf8')
 
 // Generics change the types, not what runs: these groups check the bodies still work.
 // The type checks of each step are in tests/2.test-d.ts.
-
-group('given: first', () => {
-  it('returns the first item, or undefined for an empty list', () => {
-    expect(first(trucks)).toBe(trucks[0])
-    expect(first([])).toBeUndefined()
-  })
-})
 
 group('step 1: quickest', () => {
   it('finds the shortest queue and the fastest dish', () => {
@@ -39,7 +32,20 @@ group('step 3: route', () => {
 
 group('the board', () => {
   it('prints the whole board', () => {
-    expect(report()).toEqual([
+    const shortQueue = quickest(trucks)
+    const fastDish = quickest(dishes)
+    const missing = findById(trucks, 'T9')
+    const tour = route(['T2', 'T4', 'T1']).map(id => {
+      const stop = findById(trucks, id)
+      return stop.found ? stop.value.name : stop.error
+    })
+    expect([
+      `Opening truck: ${trucks[0]?.name}`,
+      `Shortest queue: ${shortQueue?.name}, ${shortQueue?.minutes} min`,
+      `Fastest dish: ${fastDish?.name}, ${fastDish?.minutes} min`,
+      `T9: ${missing.found ? missing.value.name : missing.error}`,
+      `Tasting route: ${tour.join(' > ')}`,
+    ]).toEqual([
       'Opening truck: Taco Loco',
       'Shortest queue: Bao Down, 4 min',
       'Fastest dish: Cream tea, 2 min',

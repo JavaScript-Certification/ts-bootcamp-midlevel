@@ -1,15 +1,18 @@
 import { readFileSync } from 'node:fs'
 import { describe as group, expect, it, vi } from 'vitest'
+import { book } from '../src/_internal/night-train'
 
 // importing the exercise prints tonight's tickets: capture them to check the output
 const log = vi.spyOn(console, 'log').mockImplementation(() => {})
-const { book, cabinClasses, cabins, fare, fares, issue } = await import('#exercise/3')
+const { cabinClasses, cabins, fare, fares, issue } = await import('#exercise/3')
+type BookingRequest = import('#exercise/3').BookingRequest
 const printed = log.mock.calls.map(([line]) => line)
 const source = readFileSync(new URL(`../src/3-${process.env.SOLUTION ? 'end' : 'begin'}.ts`, import.meta.url), 'utf8')
 
-const ada = book({ passenger: 'Ada', cabin: '14D', nights: 1, breakfast: true }, 1)
-const grace = book({ passenger: 'Grace', cabin: '12C', nights: 2, breakfast: false }, 2)
-const alan = book({ passenger: 'Alan', cabin: '11A', nights: 1, breakfast: true }, 3)
+const request = (value: BookingRequest) => value
+const ada = book(request({ passenger: 'Ada', cabin: '14D', nights: 1, breakfast: true }), 0)
+const grace = book(request({ passenger: 'Grace', cabin: '12C', nights: 2, breakfast: false }), 1)
+const alan = book(request({ passenger: 'Alan', cabin: '11A', nights: 1, breakfast: true }), 2)
 
 group('given', () => {
   it('books with an id and keeps the request', () => {

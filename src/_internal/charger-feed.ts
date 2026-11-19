@@ -9,3 +9,8 @@ export const feed: readonly unknown[] = [
 ]
 
 export const latest: unknown = { id: 'C2', status: 'charging', vehicle: 'EV-204', kWh: 21 }
+
+/** Narrows unknown to an object whose properties you can read */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}

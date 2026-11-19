@@ -1,21 +1,20 @@
 // The karaoke stage of exercise 6: requests accepted or dropped in the bin, one mic that always goes back to its dock, and the sign-up form.
 // It only calls the functions you export, on a dock that reports every lend and give back. You do not need to modify this file.
-import { MicDock } from '../karaoke-night'
+import { MicDock, karaokeNight, requests } from '../karaoke-night'
 import './karaoke.css'
 
 export type SceneSongRequest = { singer: string; song: string; minutes: number }
 
 // What the scene needs from your file. Your functions fit these shapes, before and after the steps.
 export type KaraokeApi = {
-  requests: readonly string[]
   toSongRequest: (value: unknown) => SceneSongRequest | null
-  parseRequest: (raw: string) => SceneSongRequest | null
   borrowMic: (dock: MicDock, singer: string) => { singer: string }
   perform: (dock: MicDock, request: SceneSongRequest) => string
-  turn: (dock: MicDock, request: SceneSongRequest) => string
-  runNight: (dock: MicDock, raws: readonly string[]) => string[]
   field: (root: ParentNode, selector: string) => HTMLInputElement
 }
+
+// Your functions, plus the glue of the night built on them (src/_internal/karaoke-night.ts)
+type StageApi = KaraokeApi & ReturnType<typeof karaokeNight> & { requests: readonly string[] }
 
 // ---------- a dock that tells the stage what happened ----------
 
@@ -202,7 +201,7 @@ type Step = { n: 1 | 2 | 3; done: boolean; hint: string }
 // ---------- the scene ----------
 
 class KaraokeScene {
-  readonly api: KaraokeApi
+  readonly api: StageApi
   readonly root: HTMLElement
   readonly startButton: HTMLButtonElement
   readonly stage: HTMLElement
@@ -232,7 +231,7 @@ class KaraokeScene {
   singerCount = 0
   readonly steps: Step[]
 
-  constructor(host: HTMLElement, api: KaraokeApi) {
+  constructor(host: HTMLElement, api: StageApi) {
     this.api = api
     this.form = host.querySelector('form')
     this.steps = this.soundcheck()
@@ -649,7 +648,8 @@ class KaraokeScene {
 
 // ---------- entry point ----------
 
-export function mountScene(api: KaraokeApi): void {
+export function mountScene(yours: KaraokeApi): void {
+  const api: StageApi = { ...yours, ...karaokeNight(yours), requests }
   // the whole night in the console, as runNight returns it
   const night = attempt(() => api.runNight(new MicDock(), api.requests))
   if (night.ok) night.value.forEach(line => console.log(line))

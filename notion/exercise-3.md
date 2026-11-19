@@ -2,37 +2,36 @@
 
 ---
 
-⏰ 15 mins
+**⏰ 10 min**
 
 ---
 
 <aside>
-💡 If you haven’t already set up the boilerplate code, do so now with these instructions
+💡 **Tip:** If you haven’t already set up the boilerplate code, do so now with these instructions.
 </aside>
 
-## What you will build
+1. Open the following file: `/3-begin.html`
 
-You run the booking desk of the Moonline night train. Once you are done, every cabin window on the page prints its ticket. You practise deriving types with `as const`, `satisfies`, `typeof`, `keyof` and utility types, so they can never drift.
+## Goal
 
-## Before you start
+You run the booking desk of the Moonline night train. The types in the file were copied by hand, and they have started to drift. You derive them instead, with `as const`, `satisfies`, `typeof`, `keyof` and utility types, so every cabin window can print its ticket.
 
-1. Run `npm run dev` and open `/3-begin.html` in your browser.
-2. Open `src/3-begin.ts`. Each step below matches a `// Step k` comment in the file. Everything else is already written.
+Edit `src/3-begin.ts`. Each step matches a `// Step k` comment.
 
-## Step 1 - Freeze the classes, check the fares (5 mins)
+## Step 1 - Freeze the classes, check the fares (3 min)
 
-A missing fare should be a compile error, not a surprise on the train.
-
-Add `as const` to `cabinClasses` and derive `CabinClass` from it. Then add `satisfies` after `fares`:
+Hover `CabinClass`: it is just `string`. Add `as const` to the list, then check the fares with `satisfies`:
 
 ```typescript
 export const cabinClasses = ['seat', 'couchette', 'sleeper'] as const
-export type CabinClass = (typeof cabinClasses)[number]
 
-export const fares = { ... } satisfies Record<CabinClass, number>
+export const fares = {
+  seat: 39,
+  couchette: 69,
+} satisfies Record<CabinClass, number>
 ```
 
-`npm run typecheck` now names the fare you forgot:
+The compiler names the fare you forgot:
 
 ```
 error TS2741: Property 'sleeper' is missing in type '{ seat: number; couchette: number; }' but required in type 'Record<"couchette" | "seat" | "sleeper", number>'.
@@ -40,59 +39,46 @@ error TS2741: Property 'sleeper' is missing in type '{ seat: number; couchette: 
 
 Add `sleeper: 129`.
 
-✅ **Check:** hover `CabinClass`: it is `'seat' | 'couchette' | 'sleeper'`. The page now waits for step 3, and the `step 1` tests pass (`npm test`).
+✅ **Check:** `CabinClass` is `'seat' | 'couchette' | 'sleeper'`, and the sleeper car shows 129 EUR.
 
-## Step 2 - Derive the booking types (5 mins)
+## Step 2 - Derive the booking types (3 min)
 
-Hand-written copies do not follow when `Booking` changes.
-
-Replace `BookingRequest` and `Ticket` with one line each: a `Booking` without its `id`, and what `issue` returns, made read-only.
+Replace the two hand-written copies with one line each:
 
 ```typescript
-export type BookingRequest = Omit<Booking, ...>
-export type Ticket = Readonly<ReturnType<...>>
+export type BookingRequest = Omit<Booking, 'id'>
+export type Ticket = Readonly<ReturnType<typeof issue>>
 ```
 
-<aside>
-💡 HINT: `ReturnType` takes a function type, not a function. Use `typeof issue`.
-</aside>
+✅ **Check:** hover `Ticket`: every field is `readonly`, and `cabin` follows `Booking`.
 
-✅ **Check:** the `step 2` tests pass.
+## Step 3 - Derive the cabin ids, price the ticket (4 min)
 
-## Step 3 - Derive the cabin ids, price the ticket (5 mins)
-
-The `Record<string, Cabin>` annotation throws away the cabin ids, so any string counts as a cabin.
-
-Swap the annotation for `satisfies`, derive `CabinId` from the keys, then set `perNight` in `fare`.
+Swap the `Record<string, Cabin>` annotation for `satisfies`, derive `CabinId` from the keys, then price the booking in `fare` (`total` is given):
 
 ```typescript
-export const cabins = { ... } satisfies Record<string, Cabin>
+export const cabins = {
+  // ...the three cabins
+} satisfies Record<string, Cabin>
+
 export type CabinId = keyof typeof cabins
 
-const perNight = fares[cabins[booking.cabin].class]
+export function fare(booking: Booking): number {
+  return total(fares[cabins[booking.cabin].class], booking)
+}
 ```
 
 <aside>
-💡 HINT: with the old annotation, `cabins[booking.cabin]` fails with `Object is possibly 'undefined'.` With `CabinId`, every cabin exists.
+💡 **Hint:** With the old annotation, `cabins[booking.cabin]` fails with `Object is possibly 'undefined'.` With `CabinId`, every cabin exists.
 </aside>
 
-✅ **Check:** hover `CabinId`: it is `'11A' | '12C' | '14D'`. Every cabin window prints its ticket, and the `step 3` tests pass.
+✅ **Check:** `CabinId` is `'11A' | '12C' | '14D'`, every cabin window prints its ticket, and `npm test` passes.
 
 ## Expected result
 
 ![The finished exercise 3 page](images/exercise-3-result.png)
 
-Each cabin window slides out a one-line ticket, and the latest one is tagged with the type it comes from, `ReturnType<typeof issue>`. The console prints:
-
-```
-Moonline 1407, Paris Est 19:42 to Wien Hbf 09:58
-ML-1 Ada, cabin 14D: 141 EUR
-ML-2 Grace, cabin 12C: 138 EUR
-ML-3 Alan, cabin 11A: 51 EUR
-Total: 330 EUR
-```
-
-Run `npm test`: everything passes. The solution is in `src/3-end.ts`.
+Each cabin window slides out a one-line ticket, and the total is 330 EUR. The solution is in `src/3-end.ts`.
 
 ## Helpful Resources
 

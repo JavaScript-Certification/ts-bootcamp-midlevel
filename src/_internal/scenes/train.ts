@@ -1,8 +1,9 @@
 // The night train scene of exercise 3. You do not need to modify this file.
 // It draws the Moonline sleeper, one carriage per cabin class. Clicking a cabin window runs
-// your issue, fare and ticketLine, and the ticket slides out above the carriage.
+// your issue and fare, and the ticket slides out above the carriage.
 import './train.css'
-import { breakfastPerNight, departure, euros } from '../night-train'
+import { breakfastPerNight, departure, euros, ticketLine } from '../night-train'
+import { print } from '../print'
 
 export type SceneBooking = {
   readonly id: string
@@ -27,7 +28,6 @@ export type TrainApi<B extends SceneBooking, T extends SceneTicket> = {
   cabins: { readonly [cabinId: string]: SceneCabin }
   bookings: readonly B[]
   issue: (booking: B) => T
-  ticketLine: (ticket: T) => string
 }
 
 type Outcome<T> =
@@ -114,8 +114,21 @@ if (typeof document !== 'undefined') {
   }, 0)
 }
 
+// tonight's tickets, printed in the console
+function printTickets<B extends SceneBooking, T extends SceneTicket>(api: TrainApi<B, T>): void {
+  try {
+    const tickets = api.bookings.map(booking => api.issue(booking))
+    print(departure)
+    tickets.map(ticketLine).forEach(print)
+    print(`Total: ${euros(tickets.reduce((sum, ticket) => sum + ticket.total, 0))}`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export function mountScene<B extends SceneBooking, T extends SceneTicket>(api: TrainApi<B, T>): void {
   mounted = true
+  printTickets(api)
   if (typeof document === 'undefined') return
   const host = document.querySelector<HTMLElement>('#scene')
   if (!host) return
@@ -157,7 +170,7 @@ function buildScene<B extends SceneBooking, T extends SceneTicket>(api: TrainApi
       return { kind: 'waiting', step: 3, message: `fare() returns ${String(ticket.total)} for ${booking.cabin}. Derive CabinId with keyof typeof cabins, then set perNight.` }
     }
     try {
-      return { kind: 'ticket', ticket, line: api.ticketLine(ticket) }
+      return { kind: 'ticket', ticket, line: ticketLine(ticket) }
     } catch (error) {
       console.error(error)
       return { kind: 'error', message: `ticketLine(${ticket.id}) threw ${describeError(error)}` }

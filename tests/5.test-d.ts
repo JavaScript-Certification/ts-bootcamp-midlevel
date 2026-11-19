@@ -1,6 +1,6 @@
 import { describe as group, expectTypeOf, it } from 'vitest'
-import type { Network, Telemetry } from '../src/_internal/rover-network'
-import { type Result, describeFailure, pingWithRetry, retryDelays, uplink } from '#exercise/5'
+import { type Telemetry, retryDelays } from '../src/_internal/rover-network'
+import { type Result, describeFailure, pingWithRetry } from '#exercise/5'
 
 group('step 1: Result is a discriminated union', () => {
   it('accepts a success and a failure', () => {
@@ -39,10 +39,5 @@ group('step 3: pingWithRetry resolves to a Result', () => {
   it('never exposes a rejection in its type', () => {
     expectTypeOf(pingWithRetry).returns.toEqualTypeOf<Promise<Result<Telemetry, string>>>()
     expectTypeOf(pingWithRetry).returns.resolves.toEqualTypeOf<Result<Telemetry, string>>()
-  })
-
-  it('uplink resolves to the report lines', () => {
-    expectTypeOf(uplink).parameters.toEqualTypeOf<[Network, readonly string[]]>()
-    expectTypeOf(uplink).returns.resolves.toEqualTypeOf<string[]>()
   })
 })

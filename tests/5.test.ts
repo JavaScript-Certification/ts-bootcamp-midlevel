@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { describe as group, expect, it, vi } from 'vitest'
-import { type Network, RoverOfflineError, SignalLostError, createNetwork, roster } from '../src/_internal/rover-network'
+import { type Network, RoverOfflineError, SignalLostError, createNetwork, retryDelays, roster } from '../src/_internal/rover-network'
 
 // importing the exercise prints the report: keep the test output clean
 vi.spyOn(console, 'log').mockImplementation(() => {})
-const { describeFailure, pingWithRetry, reportLine, retryDelays, uplink } = await import('#exercise/5')
+const { describeFailure, pingWithRetry, reportLine } = await import('#exercise/5')
 const source = readFileSync(new URL(`../src/5-${process.env.SOLUTION ? 'end' : 'begin'}.ts`, import.meta.url), 'utf8')
 
 group('step 1: Result and reportLine', () => {
@@ -30,7 +30,6 @@ group('given: retryDelays', () => {
     expect(delays.next()).toEqual({ value: 10, done: false })
     expect(delays.next()).toEqual({ value: 20, done: false })
     expect(delays.next().done).toBe(true)
-    expect(source).toMatch(/function\s*\*\s*retryDelays/)
   })
 })
 
@@ -97,7 +96,9 @@ group('step 3: pingWithRetry', () => {
   })
 
   it('prints the full report, one line per rover', async () => {
-    expect(await uplink(createNetwork(), roster)).toEqual([
+    const network = createNetwork()
+    const lines = await Promise.all(roster.map(async rover => reportLine(rover, await pingWithRetry(network, rover))))
+    expect(lines).toEqual([
       'curiosity: 87% battery at Gale Crater',
       'perseverance: 64% battery at Jezero Crater',
       'spirit: offline since sol 2210',

@@ -4,7 +4,7 @@ import { feed, latest } from '../src/_internal/charger-feed'
 
 // importing the exercise prints the board: keep the test output clean
 vi.spyOn(console, 'log').mockImplementation(() => {})
-const { assertIsCharger, board, describe, isCharger } = await import('#exercise/1')
+const { assertIsCharger, describe, isCharger } = await import('#exercise/1')
 const source = readFileSync(new URL(`../src/1-${process.env.SOLUTION ? 'end' : 'begin'}.ts`, import.meta.url), 'utf8')
 const code = source.replace(/\/\/.*$/gm, '') // the starter shows the never check in a comment
 
@@ -60,7 +60,11 @@ group('step 3: the reserved state', () => {
   })
 
   it('prints the whole board', () => {
-    expect(board(feed, latest)).toEqual([
+    const chargers = feed.filter(isCharger)
+    const last: unknown = latest
+    if (!isCharger(last)) throw new Error('latest is not a charger')
+    const board = [...chargers.map(describe), `${feed.length - chargers.length} records rejected`, `Latest: ${describe(last)}`]
+    expect(board).toEqual([
       'C1: available',
       'C2: charging EV-204, 18.5 kWh',
       'C3: out of order (E42)',

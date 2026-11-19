@@ -1,16 +1,15 @@
+import { isRecord } from './_internal/charger-feed'
 import { mountScene } from './_internal/scenes/charging'
 
 // Exercise 1: Charging Station Board (solution)
 
-// Step 1: one object type per state, joined by `|`, with `status` as the discriminant
-// Step 3: the reserved state
+// Step 1 and 3: one object type per state, with `status` as the discriminant
 export type Charger =
   | { id: string; status: 'available' }
   | { id: string; status: 'charging'; vehicle: string; kWh: number }
   | { id: string; status: 'faulted'; code: string }
   | { id: string; status: 'reserved'; until: string }
 
-// Step 1 (continued): a switch on status, with a never check in the default branch
 export function describe(charger: Charger): string {
   switch (charger.status) {
     case 'available':
@@ -28,12 +27,7 @@ export function describe(charger: Charger): string {
   }
 }
 
-// Given: narrows unknown to an object whose properties you can read
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-// Step 2: a type predicate that checks the data each status needs (the outline is given)
+// Step 2: check the data each status needs
 export function isCharger(value: unknown): value is Charger {
   if (!isRecord(value) || typeof value.id !== 'string') return false
   switch (value.status) {
@@ -50,18 +44,9 @@ export function isCharger(value: unknown): value is Charger {
   }
 }
 
-// Step 2 (continued): an assertion function built on isCharger
 export function assertIsCharger(value: unknown): asserts value is Charger {
   if (!isCharger(value)) throw new Error('Invalid charger record')
 }
 
-// Given: the board, which uses your three functions (the records are in src/_internal/charger-feed.ts)
-export function board(records: readonly unknown[], last: unknown): string[] {
-  const chargers = records.filter(isCharger)
-  const rejected = records.length - chargers.length
-  assertIsCharger(last)
-  return [...chargers.map(describe), `${rejected} records rejected`, `Latest: ${describe(last)}`]
-}
-
-// Shows your work on the page (and prints the board in the console). You do not need to change this line.
-mountScene({ describe, isCharger, assertIsCharger, board })
+// Shows your work on the page. You do not need to change this line.
+mountScene({ describe, isCharger, assertIsCharger })

@@ -2,102 +2,71 @@
 
 ---
 
-⏰ 15 mins
+**⏰ 10 min**
 
 ---
 
 <aside>
-💡 If you haven’t already set up the boilerplate code, do so now with these instructions
+💡 **Tip:** If you haven’t already set up the boilerplate code, do so now with these instructions.
 </aside>
 
-## What you will build
+1. Open the following file: `/2-begin.html`
 
-The board of a weekend food truck rally. You replace `any` in three helpers with generics: a constraint, a default and a `const` type parameter. Each step lights up part of the rally street.
+## Goal
 
-## Before you start
+The board of a weekend food truck rally. You write three small generic helpers: one with a constraint, one with a default, one with a `const` type parameter. Each step lights up part of the rally street.
 
-1. Run `npm run dev` and open `/2-begin.html` in your browser.
-2. Open `src/2-begin.ts`. Each step below matches a `// Step k` comment in the file. Everything else is already written.
+Edit `src/2-begin.ts`. Each step matches a `// Step k` comment. Hover `fastDish` and `tour` at the bottom of the file to see your types.
 
-The data has three types:
+## Step 1 - A generic with a constraint (4 min)
 
-```typescript
-type Truck = { id: string; name: string; minutes: number } // minutes: the queue
-type Dish = { id: string; name: string; minutes: number } // minutes: the preparation time
-type Volunteer = { id: string; name: string } // no minutes
-```
-
-`first` is given: its type parameter `T` links the list to the result. The bodies already work, so you only write types.
-
-## Step 1 - Constrain `quickest` (6 mins)
-
-A constraint lets a generic body read a property, and callers still get their own type back.
-
-Add `<T>` and replace every `any` with `T` (`T | undefined` for `let best`). The compiler stops you:
-
-```
-error TS2339: Property 'minutes' does not exist on type 'T'.
-```
-
-Constrain `T` to what the body reads, nothing more:
+`quickest` should return the item with the shortest `minutes`, and keep the caller's type: a `Truck` in, a `Truck` out. Give it a type parameter, then constrain it to what the body reads:
 
 ```typescript
-export function quickest<T extends ...>(items: readonly T[]): T | undefined
+export function quickest<T extends { minutes: number }>(items: readonly T[]): T | undefined {
+  let best: T | undefined
+  for (const item of items) {
+    if (!best || item.minutes < best.minutes) best = item
+  }
+  return best
+}
 ```
 
 <aside>
-💡 HINT: The body only reads `minutes`, so the constraint has one property.
+💡 **Hint:** Try `<T>` alone first. The compiler says `Property 'minutes' does not exist on type 'T'`: that's what the constraint is for.
 </aside>
 
-✅ **Check:** `fastDish` in `report` is a `Dish | undefined`, Bao Down gets its "Quickest" badge, and the `step 1` tests pass (`npm test`).
+✅ **Check:** `fastDish` is a `Dish | undefined`, and Bao Down gets its “Quickest” badge.
 
-## Step 2 - Add a default to `Lookup` (4 mins)
+## Step 2 - A default type parameter (3 min)
 
-A default keeps the common case short, but allows another type.
-
-Add a second type parameter `E`, defaulting to `string`, and use it for `error`:
+Add a second type parameter `E` for the error, with `string` as its default:
 
 ```typescript
-export type Lookup<T, E = ...> =
+export type Lookup<T, E = string> =
   | { found: true; value: T }
-  | { found: false; error: ... }
+  | { found: false; error: E }
 ```
 
-✅ **Check:** "No match for T9" shows over the empty spot, and the `step 2` tests pass.
+✅ **Check:** `findById` still compiles without naming `E`, and “No match for T9” shows over the empty spot.
 
-## Step 3 - Keep the exact stops in `route` (5 mins)
+## Step 3 - A const type parameter (3 min)
 
-A `const` type parameter keeps literals, so callers skip `as const`.
-
-Give `route` this signature, then hover the `route([...])` call in `report`:
+`route` should keep the exact stops, in order:
 
 ```typescript
-export function route<T extends readonly string[]>(stops: T): T
+export function route<const T extends readonly string[]>(stops: T): T {
+  return stops
+}
 ```
 
-It shows `string[]`. Add one keyword before `T` so it becomes `readonly ["T2", "T4", "T1"]`.
-
-<aside>
-💡 HINT: It is the keyword from `as const`. No `any`, `as` or `@ts-ignore`: the tests look for them.
-</aside>
-
-✅ **Check:** stops 1, 2 and 3 appear on Bao Down, Curry Up, then Taco Loco, and the `step 3` tests pass.
+✅ **Check:** `tour` is `readonly ["T2", "T4", "T1"]`, the page says “All steps done”, and `npm test` passes.
 
 ## Expected result
 
 ![The finished exercise 2 page](images/exercise-2-result.png)
 
-The whole street lights up. The console prints:
-
-```
-Opening truck: Taco Loco
-Shortest queue: Bao Down, 4 min
-Fastest dish: Cream tea, 2 min
-T9: No match for T9
-Tasting route: Bao Down > Curry Up > Taco Loco
-```
-
-Run `npm test`: everything passes. The solution is in `src/2-end.ts`.
+The whole street lights up: the "Quickest" badge on Bao Down, "No match for T9" over the empty spot, and the tasting stops numbered 1 to 3. The solution is in `src/2-end.ts`.
 
 ## Helpful Resources
 

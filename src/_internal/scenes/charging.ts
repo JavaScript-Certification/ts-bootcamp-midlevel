@@ -13,7 +13,6 @@ export type ChargingApi<C extends ChargerShape> = {
   describe: (charger: C) => string
   isCharger: (value: unknown) => value is C
   assertIsCharger: (value: unknown) => asserts value is C
-  board: (records: readonly unknown[], last: unknown) => string[]
 }
 
 // ---------- running your functions without letting them break the page ----------
@@ -90,7 +89,10 @@ function analyse<C extends ChargerShape>(api: ChargingApi<C>): Analysis {
   // 1. the board itself, printed to the console like before
   let lines: string[] = []
   try {
-    lines = api.board(feed, latest)
+    const chargers = feed.filter(api.isCharger)
+    const last: unknown = latest
+    api.assertIsCharger(last)
+    lines = [...chargers.map(api.describe), `${feed.length - chargers.length} records rejected`, `Latest: ${api.describe(last)}`]
   } catch (error) {
     fail(error)
   }

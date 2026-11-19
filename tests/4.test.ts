@@ -1,17 +1,15 @@
 import { readFileSync } from 'node:fs'
 import { describe as group, expect, it, vi } from 'vitest'
+import { Team, Waitlist, audit, board } from '../src/_internal/escape-room'
 
 // importing the exercise prints the board: keep the test output clean
 vi.spyOn(console, 'log').mockImplementation(() => {})
-const { Attic, Team, Vault, Waitlist, audit, board } = await import('#exercise/4')
+const { Attic, Vault } = await import('#exercise/4')
 const source = readFileSync(new URL(`../src/4-${process.env.SOLUTION ? 'end' : 'begin'}.ts`, import.meta.url), 'utf8')
 
-group('step 1: parameter properties and #code', () => {
-  it('declares the team with readonly parameter properties', () => {
-    expect(source).toMatch(/constructor\(\s*readonly name: string,\s*readonly players: number,?\s*\)\s*\{\s*\}/)
-    const team = new Team('Night Owls', 3)
-    expect(team.name).toBe('Night Owls')
-    expect(team.players).toBe(3)
+group('step 1: a #code field', () => {
+  it('declares the code as a #private field', () => {
+    expect(source).toMatch(/#code: string/)
   })
 
   it('never shows the code to the lobby screen', () => {
@@ -28,7 +26,7 @@ group('step 1: parameter properties and #code', () => {
 
 group('step 2: an abstract Room', () => {
   it('is an abstract class that implements Resettable', () => {
-    expect(source).toMatch(/abstract class Room implements Resettable/)
+    expect(source).toMatch(/abstract class Room extends RoomBase implements Resettable/)
     expect(source).toMatch(/abstract hint\(\): string/)
   })
 
@@ -41,7 +39,7 @@ group('step 2: an abstract Room', () => {
   })
 })
 
-group('given: the generic Waitlist and the isOccupied guard', () => {
+group('given: Team, the generic Waitlist and the isOccupied guard', () => {
   it('serves teams in order and returns the position on join', () => {
     const waitlist = new Waitlist<{ name: string }>()
     expect(waitlist.join({ name: 'A' })).toBe(1)
@@ -80,7 +78,7 @@ group('step 3: the logged decorator', () => {
     audit.length = 0
     const attic = new Attic("Clockmaker's Attic", '1888')
     const vault = new Vault("Pharaoh's Vault", 'ANKH')
-    const waitlist = new Waitlist<InstanceType<typeof Team>>()
+    const waitlist = new Waitlist<Team>()
     waitlist.join(new Team('The Lantern Club', 4))
     waitlist.join(new Team('Night Owls', 3))
     attic.checkIn(waitlist.next())

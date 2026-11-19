@@ -2,87 +2,71 @@
 
 ---
 
-⏰ 15 mins
+**⏰ 10 min**
 
 ---
 
 <aside>
-💡 If you haven’t already set up the boilerplate code, do so now with these instructions
+💡 **Tip:** If you haven’t already set up the boilerplate code, do so now with these instructions.
 </aside>
 
-## What you will build
+1. Open the following file: `/4-begin.html`
 
-You run the control desk of an escape room. Once you are done, the lobby screen no longer shows the secret code, and a CCTV log next to the door lists every code a team tries. You practise privacy, abstract classes and a typed decorator.
+## Goal
 
-## Before you start
+You run the control desk of an escape room. The lobby screen must not show the secret code, every room must write its own hint, and a CCTV log lists every code a team tries. You practise real private fields, abstract classes and a typed decorator.
 
-1. Run `npm run dev` and open `/4-begin.html` in your browser.
-2. Open `src/4-begin.ts`. Each step below matches a `// Step k` comment in the file. Everything else is already written, including the generic `Waitlist` and the `isOccupied` guard: read their `Given` comments.
+Edit `src/4-begin.ts`. Each step matches a `// Step k` comment. `RoomBase` is given: it holds the team, counts the attempts and resets the room.
 
-## Step 1 - Hide the team and the code (5 mins)
+## Step 1 - Hide the code (3 min)
 
-`private` is only checked by the compiler, so `JSON.stringify` still sends the code to the lobby screen.
-
-In `Team`, delete the two fields and the two assignments, and declare them in the constructor. Then in `Room`, replace `private code` with a `#code` field.
+`private` is only checked by the compiler: at runtime the field is still there, so `JSON.stringify` sends it to the lobby screen. Use a `#` field instead, in its three places:
 
 ```typescript
-constructor(
-  readonly name: string,
-  readonly players: number,
-) {}
+#code: string
+
+this.#code = code
+
+return code === this.#code
 ```
 
-<aside>
-💡 HINT: A `#` field cannot be a parameter property: `error TS18009: Private identifiers cannot be used as parameters.` Declare `#code: string` in the class body, and assign `this.#code = code` in the constructor.
-</aside>
+✅ **Check:** the lobby says “Lobby sees no code”.
 
-✅ **Check:** the "Waiting for step 1" card disappears, and the `step 1` tests pass (`npm test`).
+## Step 2 - Make Room abstract (3 min)
 
-## Step 2 - Make Room abstract (4 mins)
-
-Nobody should create a plain `Room`, and every room must write its own hint.
-
-Make the class abstract, make it implement `Resettable`, and turn `hint()` into an abstract method with no body.
+Nobody should create a plain `Room`, and every room must write its own hint:
 
 ```typescript
-export abstract class Room implements Resettable {
+import { type Resettable, RoomBase, audit } from './_internal/escape-room'
+
+export abstract class Room extends RoomBase implements Resettable {
   // ...
   abstract hint(): string
 ```
 
-✅ **Check:** the Hint link on the keypad turns into `abstract hint()`, and clicking it shows the Attic's own hint instead of the generic one. The `step 2` tests pass.
+✅ **Check:** the Hint link on the keypad turns into `abstract hint()`. Click it: the Attic gives its own hint.
 
-## Step 3 - Log every attempt with a decorator (6 mins)
+## Step 3 - Log every attempt with a decorator (4 min)
 
-A decorator adds the audit to `tryCode` without touching its body or its type.
-
-The signature of `logged` is typed for you. Replace `return method` with a wrapper that calls the method, pushes one line into `audit` and returns the result. Then write `@logged` on the line above `tryCode`.
+In `logged`, return a wrapper that calls the method, writes one line into `audit`, and returns the result:
 
 ```typescript
 return function (this: This, ...args: Args): Return {
   const result = method.apply(this, args)
   audit.push(`${this.name}: ${String(context.name)}(${args.join(', ')}) returned ${String(result)}`)
-  return ...
+  return result
 }
 ```
 
-✅ **Check:** the CCTV log shows the two attempts, and the `step 3` tests pass.
+Then put `@logged` on the line above `tryCode`.
+
+✅ **Check:** the CCTV log shows the two attempts, and `npm test` passes.
 
 ## Expected result
 
 ![The finished exercise 4 page](images/exercise-4-result.png)
 
-The plaque shows The Lantern Club inside, the lobby sees no code, and the CCTV lists both attempts. Type `1888` and press Enter: the door opens. In the console:
-
-```
-Clockmaker's Attic: The Lantern Club, hint "The year is on the pendulum"
-Pharaoh's Vault: free, lobby shows {"name":"Pharaoh's Vault","attempts":0}
-Waiting: Night Owls
-Clockmaker's Attic: tryCode(1234) returned false
-Clockmaker's Attic: tryCode(1066) returned false
-```
-
-Run `npm test`: everything passes. The solution is in `src/4-end.ts`.
+The plaque shows The Lantern Club inside, the lobby sees no code, and the CCTV lists both attempts. Type `1888` and press Enter: the door opens. The solution is in `src/4-end.ts`.
 
 ## Helpful Resources
 

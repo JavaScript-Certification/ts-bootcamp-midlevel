@@ -1,10 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { describe as group, expect, it, vi } from 'vitest'
-import { MicDock, requests } from '../src/_internal/karaoke-night'
+import { MicDock, karaokeNight, requests } from '../src/_internal/karaoke-night'
 
 // importing the exercise prints the night: keep the test output clean
 const log = vi.spyOn(console, 'log').mockImplementation(() => {})
-const { borrowMic, field, mount, parseRequest, perform, runNight, toSongRequest } = await import('#exercise/6')
+const exercise = await import('#exercise/6')
+const { borrowMic, field, perform, toSongRequest } = exercise
+// the glue of the night (src/_internal/karaoke-night.ts), built on your functions
+const { mount, parseRequest, runNight } = karaokeNight(exercise)
 const source = readFileSync(new URL(`../src/6-${process.env.SOLUTION ? 'end' : 'begin'}.ts`, import.meta.url), 'utf8')
 
 // The tests run in Node, without a browser: a tiny stand-in for the few DOM pieces the exercise uses

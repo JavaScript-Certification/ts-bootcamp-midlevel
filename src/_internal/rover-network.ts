@@ -33,6 +33,11 @@ export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+/** A generator of retry delays, doubling each time: retryDelays(5, 3) yields 5, 10, 20 */
+export function* retryDelays(base: number, attempts: number): Generator<number, void, unknown> {
+  for (let n = 0; n < attempts; n++) yield base * 2 ** n
+}
+
 // What each ping answers, attempt after attempt (the last one repeats)
 type Answer = Telemetry | { lost: true } | { offline: string } | { raw: string }
 

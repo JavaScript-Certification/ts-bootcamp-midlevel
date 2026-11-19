@@ -1,5 +1,6 @@
 // Exercise 4 scene: the door of an escape room, its keypad, and the CCTV log of your @logged decorator.
 // It only calls the classes you export. You do not need to modify this file.
+import { Team, Waitlist, audit, board } from '../escape-room'
 import { print } from '../print'
 import './escape-room.css'
 
@@ -26,12 +27,17 @@ export interface SceneWaitlist {
   names(): string[]
 }
 
-/** The rooms, waitlist and audit built by src/4-begin.ts (or src/4-end.ts) */
-export interface EscapeRoomApi<R extends SceneRoom, W extends SceneWaitlist> {
+/** The room classes exported by src/4-begin.ts (or src/4-end.ts) */
+export interface EscapeRoomApi<R extends SceneRoom> {
+  Attic: new (name: string, code: string) => R
+  Vault: new (name: string, code: string) => R
+}
+
+/** The rooms, waitlist and audit the scene builds from your classes */
+interface Desk<R extends SceneRoom, W extends SceneWaitlist> {
   rooms: readonly R[]
   waitlist: W
   audit: readonly string[]
-  board: (rooms: readonly R[], waitlist: W) => string[]
 }
 
 type Result<T> = { ok: true; value: T } | { ok: false }
@@ -89,12 +95,24 @@ function shortLine(line: string): string {
 // ---------- the scene ----------
 
 // Mounts the scene in #scene, and prints the board in the console
-export function mountScene<R extends SceneRoom, W extends SceneWaitlist>(api: EscapeRoomApi<R, W>): void {
+export function mountScene<R extends SceneRoom>(api: EscapeRoomApi<R>): void {
+  // tonight's setup: two rooms, two teams waiting, the first team tries two codes
+  const waitlist = new Waitlist<Team>()
+  let rooms: R[] = []
   try {
-    api.board(api.rooms, api.waitlist).forEach(print)
+    const attic = new api.Attic("Clockmaker's Attic", '1888')
+    const vault = new api.Vault("Pharaoh's Vault", 'ANKH')
+    rooms = [attic, vault]
+    waitlist.join(new Team('The Lantern Club', 4))
+    waitlist.join(new Team('Night Owls', 3))
+    attic.checkIn(waitlist.next())
+    attic.tryCode('1234')
+    attic.tryCode('1066')
+    board(rooms, waitlist).forEach(print)
   } catch (error) {
     console.error('The board threw while printing:', error)
   }
+  const desk: Desk<R, Waitlist<Team>> = { rooms, waitlist, audit }
 
   if (typeof document === 'undefined') return
   const host = document.querySelector<HTMLElement>('#scene')
@@ -103,13 +121,13 @@ export function mountScene<R extends SceneRoom, W extends SceneWaitlist>(api: Es
   host.replaceChildren(root)
 
   try {
-    build(root, api)
+    build(root, desk)
   } catch (error) {
     root.replaceChildren(el('p', 'er-alert', `The scene could not start: ${describe(error)}`))
   }
 }
 
-function build<R extends SceneRoom, W extends SceneWaitlist>(root: HTMLElement, api: EscapeRoomApi<R, W>): void {
+function build<R extends SceneRoom, W extends SceneWaitlist>(root: HTMLElement, api: Desk<R, W>): void {
   const { waitlist, audit } = api
   // one door: the first room with a team inside, else the first room
   const found = api.rooms.find(r => quietly(() => r.isOccupied(), false)) ?? api.rooms[0]

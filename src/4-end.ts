@@ -1,46 +1,25 @@
-import type { Resettable } from './_internal/escape-room'
+import { type Resettable, RoomBase, audit } from './_internal/escape-room'
 import { mountScene } from './_internal/scenes/escape-room'
 
 // Exercise 4: Escape Room Control Desk (solution)
 
-// Step 1: readonly parameter properties, and a #code field
-export class Team {
-  constructor(
-    readonly name: string,
-    readonly players: number,
-  ) {}
-}
-
-// Step 2: an abstract base that implements Resettable
-export abstract class Room implements Resettable {
+// Step 2: nobody creates a plain Room, and every room writes its own hint
+export abstract class Room extends RoomBase implements Resettable {
+  // Step 1: a #private field does not exist outside the class, even at runtime
   #code: string
-  protected attempts = 0
-  team: Team | undefined = undefined
 
-  constructor(readonly name: string, code: string) {
+  constructor(name: string, code: string) {
+    super(name)
     this.#code = code
   }
 
   abstract hint(): string
 
-  checkIn(team: Team | undefined): void {
-    this.team = team
-  }
-
-  // Given: a this-based type guard
-  isOccupied(): this is { team: Team } {
-    return this.team !== undefined
-  }
-
+  // Step 3
   @logged
   tryCode(code: string): boolean {
     this.attempts++
     return code === this.#code
-  }
-
-  reset(): void {
-    this.team = undefined
-    this.attempts = 0
   }
 }
 
@@ -56,27 +35,7 @@ export class Vault extends Room {
   }
 }
 
-// Given: a generic class with a constraint
-export class Waitlist<T extends { name: string }> {
-  #items: T[] = []
-
-  join(item: T): number {
-    this.#items.push(item)
-    return this.#items.length
-  }
-
-  next(): T | undefined {
-    return this.#items.shift()
-  }
-
-  names(): string[] {
-    return this.#items.map(item => item.name)
-  }
-}
-
-export const audit: string[] = []
-
-// Step 3: a typed method decorator
+// Step 3: wrap the method, log the call, keep the result
 export function logged<This extends { name: string }, Args extends unknown[], Return>(
   method: (this: This, ...args: Args) => Return,
   context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Return>,
@@ -88,26 +47,5 @@ export function logged<This extends { name: string }, Args extends unknown[], Re
   }
 }
 
-// The board is ready: one line per room, then the waiting teams, then the audit
-export function board(rooms: readonly Room[], waitlist: Waitlist<Team>): string[] {
-  const lines = rooms.map(room =>
-    room.isOccupied()
-      ? `${room.name}: ${room.team.name}, hint "${room.hint()}"`
-      : `${room.name}: free, lobby shows ${JSON.stringify(room)}`,
-  )
-  const waiting = waitlist.names()
-  return [...lines, `Waiting: ${waiting.length ? waiting.join(', ') : 'nobody'}`, ...audit]
-}
-
-const attic = new Attic("Clockmaker's Attic", '1888')
-const vault = new Vault("Pharaoh's Vault", 'ANKH')
-const waitlist = new Waitlist<Team>()
-waitlist.join(new Team('The Lantern Club', 4))
-waitlist.join(new Team('Night Owls', 3))
-
-attic.checkIn(waitlist.next())
-attic.tryCode('1234')
-attic.tryCode('1066')
-
 // Shows your work on the page. You do not need to change this line.
-mountScene({ rooms: [attic, vault], waitlist, audit, board })
+mountScene({ Attic, Vault })

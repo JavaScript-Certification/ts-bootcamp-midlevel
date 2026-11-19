@@ -1,12 +1,11 @@
-import { MicDock, requests, sing } from './_internal/karaoke-night'
-import { print } from './_internal/print'
+import { MicDock, sing } from './_internal/karaoke-night'
 import { mountScene } from './_internal/scenes/karaoke'
 
 // Exercise 6: Karaoke Night (solution)
 
 export type SongRequest = { singer: string; song: string; minutes: number }
 
-// Step 1: check every field before you trust the request
+// Step 1: each check narrows value a little more
 export function toSongRequest(value: unknown): SongRequest | null {
   if (typeof value !== 'object' || value === null) return null
   if (!('singer' in value) || typeof value.singer !== 'string') return null
@@ -15,17 +14,7 @@ export function toSongRequest(value: unknown): SongRequest | null {
   return { singer: value.singer, song: value.song, minutes: value.minutes }
 }
 
-// Provided: the result of JSON.parse is stored as unknown, then checked
-export function parseRequest(raw: string): SongRequest | null {
-  try {
-    const value: unknown = JSON.parse(raw)
-    return toSongRequest(value)
-  } catch {
-    return null
-  }
-}
-
-// Step 2: the mic is Disposable, and disposing it puts it back on the dock
+// Step 2: disposing the mic puts it back on the dock, and using disposes it at the end of the block
 export type Mic = Disposable & { singer: string }
 
 export function borrowMic(dock: MicDock, singer: string): Mic {
@@ -38,50 +27,17 @@ export function borrowMic(dock: MicDock, singer: string): Mic {
   }
 }
 
-// Step 2: using gives the mic back at the end of the block, even when sing throws
 export function perform(dock: MicDock, request: SongRequest): string {
   using mic = borrowMic(dock, request.singer)
   return sing(dock, request)
 }
 
-// Provided: one turn on stage. A failed song becomes a "Skipped" line.
-export function turn(dock: MicDock, request: SongRequest): string {
-  try {
-    return perform(dock, request)
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
-    return `Skipped ${request.singer}: ${reason}`
-  }
-}
-
-// Provided: one turn per valid request, then the number of rejected requests
-export function runNight(dock: MicDock, raws: readonly string[]): string[] {
-  const valid = raws.map(parseRequest).filter(request => request !== null)
-  return [...valid.map(request => turn(dock, request)), `${raws.length - valid.length} requests rejected`]
-}
-
-// Step 3: prove the element is an input with instanceof
+// Step 3: prove the element is an input
 export function field(root: ParentNode, selector: string): HTMLInputElement {
   const element = root.querySelector(selector)
   if (!(element instanceof HTMLInputElement)) throw new Error(`Missing field ${selector}`)
   return element
 }
 
-// Provided: the sign-up form, built on field and toSongRequest
-export function mount(root: ParentNode, dock: MicDock): void {
-  const form = root.querySelector('form')
-  if (form === null) throw new Error('Missing sign-up form')
-  form.addEventListener('submit', event => {
-    event.preventDefault()
-    const request = toSongRequest({
-      singer: field(form, '#singer').value.trim(),
-      song: field(form, '#song').value.trim(),
-      minutes: Number(field(form, '#minutes').value),
-    })
-    print(request === null ? 'Request rejected' : turn(dock, request))
-    form.reset()
-  })
-}
-
 // Shows your work on the page. You do not need to change this line.
-mountScene({ requests, toSongRequest, parseRequest, borrowMic, perform, turn, runNight, field })
+mountScene({ toSongRequest, borrowMic, perform, field })

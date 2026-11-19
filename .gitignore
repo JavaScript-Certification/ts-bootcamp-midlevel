@@ -10,3 +10,6 @@ dist
 # Local environment
 .env
 .env.*
+
+# Recording scripts (not for learners)
+recording/

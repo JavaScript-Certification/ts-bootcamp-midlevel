@@ -1,11 +1,11 @@
 import { describe as group, expectTypeOf, it } from 'vitest'
+import { book } from '../src/_internal/night-train'
 import {
   type Booking,
   type BookingRequest,
   type CabinClass,
   type CabinId,
   type Ticket,
-  book,
   cabinClasses,
   cabins,
   fare,
@@ -39,7 +39,8 @@ group('step 2: types derived with utility types', () => {
     const withId: BookingRequest = { id: 'ML-9', passenger: 'Lin', cabin: '11A', nights: 1, breakfast: false }
     void withId
     expectTypeOf<Ticket>().toEqualTypeOf<Readonly<ReturnType<typeof issue>>>()
-    const ticket: Ticket = issue(book({ passenger: 'Lin', cabin: '11A', nights: 1, breakfast: false }, 9))
+    const request: BookingRequest = { passenger: 'Lin', cabin: '11A', nights: 1, breakfast: false }
+    const ticket: Ticket = issue(book(request, 9))
     // @ts-expect-error a ticket cannot be edited once issued
     ticket.total = 0
   })

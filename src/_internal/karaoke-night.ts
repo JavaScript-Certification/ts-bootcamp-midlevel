@@ -1,5 +1,6 @@
 // The karaoke bar: song requests sent from phones, the backing tracks, and the mic dock.
 // You do not need to modify this file.
+import { print } from './print'
 
 // Raw requests, exactly as the phones sent them: JSON text you cannot trust
 export const requests: readonly string[] = [
@@ -45,4 +46,61 @@ export function sing(dock: MicDock, request: { singer: string; song: string; min
   if (dock.holder !== request.singer) throw new Error(`${request.singer} has no mic`)
   if (!catalogue.has(request.song)) throw new Error(`No backing track for ${request.song}`)
   return `${request.singer} sings ${request.song} (${request.minutes} min)`
+}
+
+// ---------- the rest of the night, built on the functions you write in src/6-begin.ts ----------
+
+type Request = { singer: string; song: string; minutes: number }
+
+/** The functions of your exercise file that the night runs on */
+export type Performer = {
+  toSongRequest: (value: unknown) => Request | null
+  perform: (dock: MicDock, request: Request) => string
+  field: (root: ParentNode, selector: string) => HTMLInputElement
+}
+
+export function karaokeNight({ toSongRequest, perform, field }: Performer) {
+  // the result of JSON.parse is stored as unknown, then checked by toSongRequest
+  function parseRequest(raw: string): Request | null {
+    try {
+      const value: unknown = JSON.parse(raw)
+      return toSongRequest(value)
+    } catch {
+      return null
+    }
+  }
+
+  // one turn on stage: a failed song becomes a "Skipped" line
+  function turn(dock: MicDock, request: Request): string {
+    try {
+      return perform(dock, request)
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error)
+      return `Skipped ${request.singer}: ${reason}`
+    }
+  }
+
+  // one turn per valid request, then the number of rejected requests
+  function runNight(dock: MicDock, raws: readonly string[]): string[] {
+    const valid = raws.map(parseRequest).filter(request => request !== null)
+    return [...valid.map(request => turn(dock, request)), `${raws.length - valid.length} requests rejected`]
+  }
+
+  // the sign-up form, built on field and toSongRequest
+  function mount(root: ParentNode, dock: MicDock): void {
+    const form = root.querySelector('form')
+    if (form === null) throw new Error('Missing sign-up form')
+    form.addEventListener('submit', event => {
+      event.preventDefault()
+      const request = toSongRequest({
+        singer: field(form, '#singer').value.trim(),
+        song: field(form, '#song').value.trim(),
+        minutes: Number(field(form, '#minutes').value),
+      })
+      print(request === null ? 'Request rejected' : turn(dock, request))
+      form.reset()
+    })
+  }
+
+  return { parseRequest, turn, runNight, mount }
 }
